@@ -40,6 +40,11 @@ impl CyclotomicIntegerExponents {
     pub fn house_squared(&self) -> f64 {
     // Return the square of the house of the input.
 
+    // TODO: It would be more idiomatic to check for emptyness of the
+    // iterator rather than return 0. The return type would probably be
+    // something along the lines of Option(f64). Same for the next
+    // method.
+
         let mut max = 0 as f64;
         for abs_squared in self.conjugates_abs_squared() {
             if abs_squared > max {
