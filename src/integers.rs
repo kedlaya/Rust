@@ -1,5 +1,7 @@
 use gcd::euclid_u32;  // I'm sad this is not in the standard library
 
+// TODO: Unit tests
+
 pub fn euler_phi(n: u32) -> u32 {
     /// Euler totient function.
     
