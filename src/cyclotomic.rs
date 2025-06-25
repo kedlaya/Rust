@@ -52,18 +52,6 @@ fn float_equality(x: f64, y: f64) -> bool {
 }
 
 pub fn test_cyclotomic_integer_exponents() {
-    // let exponents = vec![1]; // This represents i
-    // let level = 4;
-    // let result = house_squared(&exponents, level);
-
-    // assert!(house_squared(&exponents, level) == 1 as f64);
-
-    // let exponents = vec![0, 1]; // This represents 1 + i
-    // let level = 4;
-    // let result = house_squared(&exponents, level);
-
-    // assert_eq!(house_squared(&exponents, level), 2 as f64);
-
     // Test 1
     // Randomly taken from SageMath
     let ex1 = CyclotomicIntegerExponents{ exponents: vec![0, 1, 3, 5],
@@ -85,4 +73,19 @@ pub fn test_cyclotomic_integer_exponents() {
                                           level: 70
     };
     assert!(float_equality(ex3.house_squared(), 3 as f64));
+
+    // Test 4
+    // i (imaginary unit)
+    let ex4 = CyclotomicIntegerExponents{ exponents: vec![1],
+                                          level: 4
+    };
+    assert_eq!(ex4.house_squared(), 1 as f64);
+
+    // Test 4
+    // i (imaginary unit)
+    let ex5 = CyclotomicIntegerExponents{ exponents: vec![0, 1],
+                                          level: 4
+    };
+    assert_eq!(ex5.house_squared(), 2 as f64);
+
 }
