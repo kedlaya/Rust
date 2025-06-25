@@ -46,9 +46,9 @@ impl CyclotomicIntegerExponents {
 }
 
 
-fn test_float_equality(x: f64, y: f64) -> bool {
+fn float_equality(x: f64, y: f64) -> bool {
     // WARNING: At some point, we probably want that in another file.
-    (x - y).abs() < 0.000001 as f64
+    (x - y).abs() < (0.000001 as f64)
 }
 
 pub fn test_cyclotomic_integer_exponents() {
@@ -70,21 +70,19 @@ pub fn test_cyclotomic_integer_exponents() {
                                           level: 7
     };
     let sage_res1: f64 = 5.04891733952231;
-    test_float_equality(ex1.house_squared(), sage_res1);
+    assert!(float_equality(ex1.house_squared(), sage_res1));
 
     // Test 2
     // Taken from table 1 of Kiran's notes
     let ex2 = CyclotomicIntegerExponents{ exponents: vec![0, 1, 3, 8, 12, 18],
                                           level: 31
     };
-    test_float_equality(ex2.house_squared(), 5 as f64);
+    assert!(float_equality(ex2.house_squared(), 5 as f64));
 
     // Test 3
     // Taken from table 1 of Kiran's notes
     let ex3 = CyclotomicIntegerExponents{ exponents: vec![0, 1, 11, 42, 51],
                                           level: 70
     };
-    test_float_equality(ex2.house_squared(), 3 as f64);
+    assert!(float_equality(ex3.house_squared(), 3 as f64));
 }
-
-// test();
