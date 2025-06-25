@@ -6,10 +6,9 @@ use std::f64::consts::TAU;
 
 
 pub struct CyclotomicIntegerExponents {
-    exponents: Vec<u32>,
-    level: u32,
+    pub exponents: Vec<u32>,
+    pub level: u32,
 }
-
 
 impl CyclotomicIntegerExponents {
 
@@ -17,6 +16,7 @@ impl CyclotomicIntegerExponents {
     // Return the square of the house of the input.
 
         let mut max_house_squared: f64 = 0.0;
+        let angle0 = TAU / (self.level as f64);
 
         // Iterate through the conjugates
         for k in 1..self.level as u32 {
@@ -28,11 +28,13 @@ impl CyclotomicIntegerExponents {
             let mut cos_sum = 0.0;
             let mut sin_sum = 0.0;
             for j in &self.exponents {
-                let angle = TAU * ((k * j % self.level) as f64) /
-                            (self.level as f64);
-                let (sin, cos) = angle.sin_cos();
-                cos_sum += cos;
-                sin_sum += sin;
+                // Skip values that are out of range, as a way to allow zero summands
+                if *j < self.level {
+                    let angle = angle0 * ((k * j) as f64);
+                    let (sin, cos) = angle.sin_cos();
+                    cos_sum += cos;
+                    sin_sum += sin;
+                }
             }
             let house_squared = cos_sum.powi(2) + sin_sum.powi(2);
 
@@ -60,10 +62,12 @@ impl CyclotomicIntegerExponents {
             let mut cos_sum = 0.0;
             let mut sin_sum = 0.0;
             for j in &self.exponents {
-                let angle = angle0 * ((k * j) as f64);
-                let (sin, cos) = angle.sin_cos();
-                cos_sum += cos;
-                sin_sum += sin;
+                if *j < self.level {
+                    let angle = angle0 * ((k * j) as f64);
+                    let (sin, cos) = angle.sin_cos();
+                    cos_sum += cos;
+                    sin_sum += sin;
+                }
             }
             let house_squared = cos_sum.powi(2) + sin_sum.powi(2);
 
@@ -75,7 +79,6 @@ impl CyclotomicIntegerExponents {
         true
     }    
 }
-
 
 fn float_equality(x: f64, y: f64) -> bool {
     // WARNING: At some point, we probably want that in another file.
@@ -126,3 +129,4 @@ pub fn test_cyclotomic_integer_exponents() {
     };
     assert_eq!(ex5.house_squared(), 2 as f64);
 }
+
