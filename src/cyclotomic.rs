@@ -14,7 +14,7 @@ pub struct CyclotomicIntegerExponents {
 impl CyclotomicIntegerExponents {
 
     pub fn house_squared(&self) -> f64 {
-    /// Return the square of the house of the input.
+    // Return the square of the house of the input.
 
         let mut max_house_squared: f64 = 0.0;
 
@@ -43,6 +43,37 @@ impl CyclotomicIntegerExponents {
         }
         max_house_squared
     }
+
+    pub fn compare_house_squared(&self, cutoff: f64) -> bool {
+    // Check whether square of the house of the input is bounded above by the cutoff.
+    // This is more efficient than computing the house first.
+
+        let angle0 = TAU / (self.level as f64);
+
+        // Iterate through the conjugates
+        for k in 1..self.level as u32 {
+            if euclid_u32(k, self.level) != 1 {
+                continue;
+            }
+
+            // Compute the house squared
+            let mut cos_sum = 0.0;
+            let mut sin_sum = 0.0;
+            for j in &self.exponents {
+                let angle = angle0 * ((k * j) as f64);
+                let (sin, cos) = angle.sin_cos();
+                cos_sum += cos;
+                sin_sum += sin;
+            }
+            let house_squared = cos_sum.powi(2) + sin_sum.powi(2);
+
+            // Compare the house squared
+            if house_squared >= cutoff {
+                return false;
+            }
+        }
+        true
+    }    
 }
 
 
@@ -52,7 +83,7 @@ fn float_equality(x: f64, y: f64) -> bool {
 }
 
 pub fn test_cyclotomic_integer_exponents() {
-    /// Tests for CyclotomicIntegerExponents
+    // Tests for CyclotomicIntegerExponents
 
     // Test 1
     // Randomly taken from SageMath
@@ -61,6 +92,8 @@ pub fn test_cyclotomic_integer_exponents() {
     };
     let sage_res1: f64 = 5.04891733952231;
     assert!(float_equality(ex1.house_squared(), sage_res1));
+    assert!(ex1.compare_house_squared(sage_res1+0.000001));
+    assert!(!ex1.compare_house_squared(5 as f64));
 
     // Test 2
     // Taken from table 1 of Kiran's notes
@@ -68,6 +101,7 @@ pub fn test_cyclotomic_integer_exponents() {
                                           level: 31
     };
     assert!(float_equality(ex2.house_squared(), 5 as f64));
+    assert!(ex2.compare_house_squared(5.000001 as f64));
 
     // Test 3
     // Taken from table 1 of Kiran's notes
@@ -75,6 +109,8 @@ pub fn test_cyclotomic_integer_exponents() {
                                           level: 70
     };
     assert!(float_equality(ex3.house_squared(), 3 as f64));
+    assert!(ex3.compare_house_squared(3.000001 as f64));
+    assert!(!ex3.compare_house_squared(2.999999 as f64));
 
     // Test 4
     // i (imaginary unit)
