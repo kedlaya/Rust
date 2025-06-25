@@ -12,67 +12,50 @@ pub struct CyclotomicIntegerExponents {
 
 impl CyclotomicIntegerExponents {
 
+    fn conjugates_abs_squared(&self) -> impl Iterator<Item = f64> {
+
+        let angle0 = TAU / (self.level as f64);
+
+        // Iterate through the conjugates
+        (1..self.level)
+            // Get the right Galois group automorphisms
+            .filter(move |&k| euclid_u32(k, self.level) == 1)
+            .map(move |k| {
+                // Compute the house squared
+                let mut cos_sum = 0.0;
+                let mut sin_sum = 0.0;
+                for j in &self.exponents {
+                    if *j < self.level {
+                        let angle = angle0 * ((k * j) as f64);
+                        let (sin, cos) = angle.sin_cos();
+                        cos_sum += cos;
+                        sin_sum += sin;
+                    }
+                }
+                // Yield the house squared
+                cos_sum.powi(2) + sin_sum.powi(2)
+            })
+    }
+
     pub fn house_squared(&self) -> f64 {
     // Return the square of the house of the input.
 
-        let mut max_house_squared: f64 = 0.0;
-        let angle0 = TAU / (self.level as f64);
-
-        // Iterate through the conjugates
-        for k in 1..self.level as u32 {
-            if euclid_u32(k, self.level) != 1 {
-                continue;
-            }
-
-            // Compute the house squared
-            let mut cos_sum = 0.0;
-            let mut sin_sum = 0.0;
-            for j in &self.exponents {
-                // Skip values that are out of range, as a way to allow zero summands
-                if *j < self.level {
-                    let angle = angle0 * ((k * j) as f64);
-                    let (sin, cos) = angle.sin_cos();
-                    cos_sum += cos;
-                    sin_sum += sin;
-                }
-            }
-            let house_squared = cos_sum.powi(2) + sin_sum.powi(2);
-
-            // Compare the house squared
-            if house_squared > max_house_squared {
-                max_house_squared = house_squared;
+        let mut max = 0 as f64;
+        for abs_squared in self.conjugates_abs_squared() {
+            if abs_squared > max {
+                max = abs_squared;
             }
         }
-        max_house_squared
+        max
     }
 
     pub fn compare_house_squared(&self, cutoff: f64) -> bool {
-    // Check whether square of the house of the input is bounded above by the cutoff.
-    // This is more efficient than computing the house first.
+    // Check whether square of the house of the input is bounded above
+    // by the cutoff. This is more efficient than computing the
+    // house first.
 
-        let angle0 = TAU / (self.level as f64);
-
-        // Iterate through the conjugates
-        for k in 1..self.level as u32 {
-            if euclid_u32(k, self.level) != 1 {
-                continue;
-            }
-
-            // Compute the house squared
-            let mut cos_sum = 0.0;
-            let mut sin_sum = 0.0;
-            for j in &self.exponents {
-                if *j < self.level {
-                    let angle = angle0 * ((k * j) as f64);
-                    let (sin, cos) = angle.sin_cos();
-                    cos_sum += cos;
-                    sin_sum += sin;
-                }
-            }
-            let house_squared = cos_sum.powi(2) + sin_sum.powi(2);
-
-            // Compare the house squared
-            if house_squared >= cutoff {
+        for abs_squared in self.conjugates_abs_squared() {
+            if abs_squared >= cutoff {
                 return false;
             }
         }
