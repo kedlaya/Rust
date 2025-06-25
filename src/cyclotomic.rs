@@ -44,3 +44,47 @@ impl CyclotomicIntegerExponents {
         max_house_squared
     }
 }
+
+
+fn test_float_equality(x: f64, y: f64) -> bool {
+    // WARNING: At some point, we probably want that in another file.
+    (x - y).abs() < 0.000001 as f64
+}
+
+pub fn test_cyclotomic_integer_exponents() {
+    // let exponents = vec![1]; // This represents i
+    // let level = 4;
+    // let result = house_squared(&exponents, level);
+
+    // assert!(house_squared(&exponents, level) == 1 as f64);
+
+    // let exponents = vec![0, 1]; // This represents 1 + i
+    // let level = 4;
+    // let result = house_squared(&exponents, level);
+
+    // assert_eq!(house_squared(&exponents, level), 2 as f64);
+
+    // Test 1
+    // Randomly taken from SageMath
+    let ex1 = CyclotomicIntegerExponents{ exponents: vec![0, 1, 3, 5],
+                                          level: 7
+    };
+    let sage_res1: f64 = 5.04891733952231;
+    test_float_equality(ex1.house_squared(), sage_res1);
+
+    // Test 2
+    // Taken from table 1 of Kiran's notes
+    let ex2 = CyclotomicIntegerExponents{ exponents: vec![0, 1, 3, 8, 12, 18],
+                                          level: 31
+    };
+    test_float_equality(ex2.house_squared(), 5 as f64);
+
+    // Test 3
+    // Taken from table 1 of Kiran's notes
+    let ex3 = CyclotomicIntegerExponents{ exponents: vec![0, 1, 11, 42, 51],
+                                          level: 70
+    };
+    test_float_equality(ex2.house_squared(), 3 as f64);
+}
+
+// test();
