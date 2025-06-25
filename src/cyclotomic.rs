@@ -12,67 +12,67 @@ pub struct CyclotomicIntegerExponents {
 
 impl CyclotomicIntegerExponents {
 
-    pub fn house_squared(&self) -> f64 {
-    // Return the square of the house of the input.
+    fn conjugates_abs_squared(&self) -> impl Iterator<Item = f64> {
+        /// Iterate through the squares of the modules of the conjugates
+        /// of self. We use `abs` to stick the SageMath convention.
 
-        let mut max_house_squared: f64 = 0.0;
+        // Here is an attempt at creating an iterator. Unfortunately,
+        // it's more complicated than simply using `yield` as in Python.
+
         let angle0 = TAU / (self.level as f64);
 
         // Iterate through the conjugates
-        for k in 1..self.level as u32 {
-            if euclid_u32(k, self.level) != 1 {
-                continue;
-            }
-
-            // Compute the house squared
-            let mut cos_sum = 0.0;
-            let mut sin_sum = 0.0;
-            for j in &self.exponents {
-                // Skip values that are out of range, as a way to allow zero summands
-                if *j < self.level {
-                    let angle = angle0 * ((k * j) as f64);
-                    let (sin, cos) = angle.sin_cos();
-                    cos_sum += cos;
-                    sin_sum += sin;
+        (1..self.level)
+            // First, get the right Galois group automorphisms:
+            .filter(move |k| euclid_u32(*k, self.level) == 1)
+            // Second, compute the square of the module for this Galois
+            // automorphism:
+            .map(move |k| {
+                let mut cos_sum = 0.0;
+                let mut sin_sum = 0.0;
+                for j in &self.exponents {
+                    if *j < self.level {
+                        let angle = angle0 * ((k * j) as f64);
+                        let (sin, cos) = angle.sin_cos();
+                        cos_sum += cos;
+                        sin_sum += sin;
+                    }
                 }
-            }
-            let house_squared = cos_sum.powi(2) + sin_sum.powi(2);
 
-            // Compare the house squared
-            if house_squared > max_house_squared {
-                max_house_squared = house_squared;
+                // Yield the square of the module
+                cos_sum.powi(2) + sin_sum.powi(2)
+            })
+        // From my very limited understanding, the `move` keyword is
+        // used to transfer ownership of any variable appearing in the
+        // closure definition, to the closure itself. In our case:
+        // self.level in the first closure, and &self.exponents and
+        // self.level.
+    }
+
+    pub fn house_squared(&self) -> f64 {
+        /// Return the square of the house of the input.
+
+        // TODO: It would be more idiomatic to check for emptyness of the
+        // iterator rather than return 0. The return type would probably be
+        // something along the lines of Option(f64). Same for the next
+        // method.
+
+        let mut max_abs_squared = 0 as f64;
+        for abs_squared in self.conjugates_abs_squared() {
+            if abs_squared > max_abs_squared {
+                max_abs_squared = abs_squared;
             }
         }
-        max_house_squared
+        max_abs_squared
     }
 
     pub fn compare_house_squared(&self, cutoff: f64) -> bool {
-    // Check whether square of the house of the input is bounded above by the cutoff.
-    // This is more efficient than computing the house first.
+        /// Check whether square of the house of the input is bounded
+        /// above by the cutoff. This is more efficient than computing
+        /// the house first.
 
-        let angle0 = TAU / (self.level as f64);
-
-        // Iterate through the conjugates
-        for k in 1..self.level as u32 {
-            if euclid_u32(k, self.level) != 1 {
-                continue;
-            }
-
-            // Compute the house squared
-            let mut cos_sum = 0.0;
-            let mut sin_sum = 0.0;
-            for j in &self.exponents {
-                if *j < self.level {
-                    let angle = angle0 * ((k * j) as f64);
-                    let (sin, cos) = angle.sin_cos();
-                    cos_sum += cos;
-                    sin_sum += sin;
-                }
-            }
-            let house_squared = cos_sum.powi(2) + sin_sum.powi(2);
-
-            // Compare the house squared
-            if house_squared >= cutoff {
+        for abs_squared in self.conjugates_abs_squared() {
+            if abs_squared >= cutoff {
                 return false;
             }
         }
