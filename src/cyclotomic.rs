@@ -13,15 +13,23 @@ pub struct CyclotomicIntegerExponents {
 impl CyclotomicIntegerExponents {
 
     fn conjugates_abs_squared(&self) -> impl Iterator<Item = f64> {
+        /// Iterate through the squares of the modules of the conjugates
+        /// of self. We use `abs` to stick the SageMath convention.
+
+        // Here is an attempt at creating an iterator. Unfortunately,
+        // it's more complicated than simply using `yield` as in Python.
+        // Here are a few comments:
+        //
 
         let angle0 = TAU / (self.level as f64);
 
         // Iterate through the conjugates
         (1..self.level)
-            // Get the right Galois group automorphisms
-            .filter(move |&k| euclid_u32(k, self.level) == 1)
+            // First, get the right Galois group automorphisms:
+            .filter(move |k| euclid_u32(*k, self.level) == 1)
+            // Second, compute the square of the module for this Galois
+            // automorphism:
             .map(move |k| {
-                // Compute the house squared
                 let mut cos_sum = 0.0;
                 let mut sin_sum = 0.0;
                 for j in &self.exponents {
@@ -32,32 +40,38 @@ impl CyclotomicIntegerExponents {
                         sin_sum += sin;
                     }
                 }
-                // Yield the house squared
+
+                // Yield the square of the module
                 cos_sum.powi(2) + sin_sum.powi(2)
             })
+        // From my very limited understanding, the `move` keyword is
+        // used to transfer ownership of any variable appearing in the
+        // closure definition, to the closure itself. In our case:
+        // self.level in the first closure, and &self.exponents and
+        // self.level.
     }
 
     pub fn house_squared(&self) -> f64 {
-    // Return the square of the house of the input.
+        /// Return the square of the house of the input.
 
-    // TODO: It would be more idiomatic to check for emptyness of the
-    // iterator rather than return 0. The return type would probably be
-    // something along the lines of Option(f64). Same for the next
-    // method.
+        // TODO: It would be more idiomatic to check for emptyness of the
+        // iterator rather than return 0. The return type would probably be
+        // something along the lines of Option(f64). Same for the next
+        // method.
 
-        let mut max = 0 as f64;
+        let mut max_abs_squared = 0 as f64;
         for abs_squared in self.conjugates_abs_squared() {
-            if abs_squared > max {
-                max = abs_squared;
+            if abs_squared > max_abs_squared {
+                max_abs_squared = abs_squared;
             }
         }
-        max
+        max_abs_squared
     }
 
     pub fn compare_house_squared(&self, cutoff: f64) -> bool {
-    // Check whether square of the house of the input is bounded above
-    // by the cutoff. This is more efficient than computing the
-    // house first.
+        /// Check whether square of the house of the input is bounded
+        /// above by the cutoff. This is more efficient than computing
+        /// the house first.
 
         for abs_squared in self.conjugates_abs_squared() {
             if abs_squared >= cutoff {
