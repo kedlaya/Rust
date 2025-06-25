@@ -52,6 +52,8 @@ fn float_equality(x: f64, y: f64) -> bool {
 }
 
 pub fn test_cyclotomic_integer_exponents() {
+    /// Tests for CyclotomicIntegerExponents
+
     // Test 1
     // Randomly taken from SageMath
     let ex1 = CyclotomicIntegerExponents{ exponents: vec![0, 1, 3, 5],
@@ -87,5 +89,4 @@ pub fn test_cyclotomic_integer_exponents() {
                                           level: 4
     };
     assert_eq!(ex5.house_squared(), 2 as f64);
-
 }
