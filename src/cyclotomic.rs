@@ -18,8 +18,6 @@ impl CyclotomicIntegerExponents {
 
         // Here is an attempt at creating an iterator. Unfortunately,
         // it's more complicated than simply using `yield` as in Python.
-        // Here are a few comments:
-        //
 
         let angle0 = TAU / (self.level as f64);
 
