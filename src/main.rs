@@ -53,7 +53,7 @@ fn main() -> std::io::Result<()> {
                      }
 
                      // Filter for house squared <= 5.1
-                     let ex = CyclotomicIntegerExponents{ exponents: l, level: n };
+                     let ex = CyclotomicIntegerExponents{ exponents: l.clone(), level: n };
                      if ex.compare_house_squared(5.1 as f64) {
                         // Record the exponents (omitting the initial 0)
                         write!(f, "[{}, {}, {}, {}, {}, {}]\n", l[1], l[2], l[3], l[4], l[5], l[6]).expect("output failure");
