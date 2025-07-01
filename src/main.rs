@@ -107,8 +107,19 @@ fn main() -> std::io::Result<()> {
    println!("All tests passed!");
 
    let f = File::create("output.txt")?;
-   let _ = loop_over_roots(11, 5, &f);
-   let _ = loop_over_roots(420, 7, &f);
+   let _ = loop_over_roots(5*17, 4, &f);
+   let _ = loop_over_roots(2*19, 9, &f);
+   let _ = loop_over_roots(2*3*13, 7, &f);
+   let _ = loop_over_roots(2*3*17, 7, &f);
+   let _ = loop_over_roots(2*3*19, 7, &f);   
+   let _ = loop_over_roots(2*3*5*17, 6, &f);
+   let _ = loop_over_roots(2*7*17, 7, &f);
+   let _ = loop_over_roots(2*3*32, 6, &f);   
+   let _ = loop_over_roots(2*5*19, 6, &f);   
+   let _ = loop_over_roots(2*2*3*5*7*11*13, 4, &f);
+//   let _ = loop_over_roots(2730, 5, &f);
+   let _ = loop_over_roots(2*2*3*5*7*11, 5, &f);
+   let _ = loop_over_roots(2*2*3*5*7, 7, &f);
 
    println!("All cases checked!");
    Ok(())
