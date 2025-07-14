@@ -13,6 +13,7 @@ fn loop_over_roots(n: u32, len: usize, mut f: &File) -> std::io::Result<()> {
     let n2 = if n%2 == 0 {n / 2} else {0};
     let n3 = if (n2 != 0) && (n%3 == 0) {n / 3} else {0};
     let n5 = if (n2 != 0) && (n%5 == 0) {n / 5} else {0};
+    let n7 = if (n2 != 0) && (n%7 == 0) {n / 7} else {0};
 
     for j2 in 1..n {
        // Require that j_2 divides n.
@@ -88,9 +89,33 @@ fn loop_over_roots(n: u32, len: usize, mut f: &File) -> std::io::Result<()> {
 
                    // Filter for house squared <= 5.1
                    let ex = CyclotomicIntegerExponents{ exponents: l.clone(), level: n };
-                   if ex.compare_house_squared(5.1 as f64) {
-                      tx1.send(l.clone()).unwrap();
+                   if !ex.compare_house_squared(5.1 as f64) {
+                      continue 'inner;
                    }
+                   
+                   // Skip cases where four roots of unity differ by factors of zeta_7.
+                   if n7 != 0 {
+                       for a in 0..len {
+                           if l[a] < n {
+                               for b in 0..a {
+                                   if (l[a] > l[b]) && ((l[a]-l[b]) % n7 == 0) {
+                                       for c in 0..b {
+                                           if (l[b] > l[c]) && ((l[b]-l[c]) % n7 == 0) {
+                                               for d in 0..c {
+                                                   if (l[c] > l[d]) && ((l[c]-l[d]) % n7 == 0) {
+                                                       continue 'inner;
+                                                   }
+                                               }
+                                           }
+                                       }
+                                   }
+                               }
+                           }
+                       }
+                   }
+
+                   // Record this case
+                   tx1.send(l.clone()).unwrap();
                }
                println!("Checked cases with n = {}, j_2 = {}, j_3 = {}", n, j2, j3);
              });
@@ -117,8 +142,6 @@ fn main() -> std::io::Result<()> {
    let _ = loop_over_roots(2*19, 9, &f);
    let _ = loop_over_roots(2*3*13, 7, &f);
    let _ = loop_over_roots(2*5*13, 5, &f);
-   let _ = loop_over_roots(2*7*13, 5, &f);
-   let _ = loop_over_roots(2*11*13, 5, &f);
    let _ = loop_over_roots(2*2*3*5*7*11*13, 4, &f);
    let _ = loop_over_roots(2*3*7*11*13, 5, &f);
    let _ = loop_over_roots(2*3*5*11, 6, &f);
