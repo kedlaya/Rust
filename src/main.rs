@@ -7,38 +7,43 @@ use std::sync::mpsc;
 use std::thread;
 use itertools::Itertools;
 
+use gcd::euclid_u32;
+
 fn loop_over_roots(n: u32, len: usize, mut f: &File) -> std::io::Result<()> {
     let n2 = if n%2 == 0 {n / 2} else {0};
     let n3 = if (n2 != 0) && (n%3 == 0) {n / 3} else {0};
     let n5 = if (n2 != 0) && (n%5 == 0) {n / 5} else {0};
 
-    for d in 1..n {
-       if n % d != 0 {
+    for j2 in 1..n {
+       // Require that j_2 divides n.
+       if n % j2 != 0 {
            continue;
        }
-       // Loop over tuples [j_1, ..., j_*] with 0 <= j_1 <= ... <= j_* <= n/d.
+       // Loop over tuples [j_3, ..., j_*] with 0 <= j_3 <= ... <= j_* <= n,
+       // also requiring that gcd(j_i, n) >= j_2.
        // Note: we allow n as an exponent as a proxy for a zero summand.
        let (tx, rx) = mpsc::channel();
-       for j1 in (0..=n).step_by(d as usize) {
+       for j3 in (0..=n).filter(|x| euclid_u32(*x, n) >= j2) {
            let tx1 = tx.clone();
            thread::spawn(move || {
                let mut l: Vec<u32> = vec![0; len];
                l[0] = 0;
-               l[1] = d;
-               l[2] = j1;
+               l[1] = j2;
+               l[2] = j3;
 
-              'inner: for it in ((j1..=n).step_by(d as usize)).combinations_with_replacement(len-3) {
+               let iter = (j3..=n).filter(|x| (j2 == 1) || euclid_u32(*x, n) >= j2);
+               'inner: for it in iter.combinations_with_replacement(len-3) {
 
                    for i in 3..len {
                        l[i] = it[i-3];
                    }
 
                    // Remove some cases made redundant by complex conjugation.
-                   if (l[len-1] < n) && ((l[2] + l[len-1] > n + l[1]) || ((l[2] == 0) && (l[3] > 1))) {
+                   if (l[len-1] < n) && (l[2] + l[len-1] > n + l[1]) {
                        continue 'inner;
                    }
 
-                   // Skip cases where two roots of unity differ by a factor of -1
+                   // Skip cases where two roots of unity differ by a factor of -1.
                    if n2 != 0 {
                        for a in 0..len {
                            if l[a] < n {
@@ -51,7 +56,7 @@ fn loop_over_roots(n: u32, len: usize, mut f: &File) -> std::io::Result<()> {
                        }
                    }
 
-                   // Skip cases where two roots of unity differ by a factor of zeta_3
+                   // Skip cases where two roots of unity differ by a factor of zeta_3.
                    if n3 != 0 {
                        for a in 0..len {
                            if l[a] < n {
@@ -64,7 +69,7 @@ fn loop_over_roots(n: u32, len: usize, mut f: &File) -> std::io::Result<()> {
                        }
                    }
 
-                   // Skip cases where three roots of unity differ by factors of zeta_5
+                   // Skip cases where three roots of unity differ by factors of zeta_5.
                    if n5 != 0 {
                        for a in 0..len {
                            if l[a] < n {
@@ -87,7 +92,7 @@ fn loop_over_roots(n: u32, len: usize, mut f: &File) -> std::io::Result<()> {
                       tx1.send(l.clone()).unwrap();
                    }
                }
-               println!("Checked cases with n = {}, d = {}, j_1 = {}", n, d, j1);
+               println!("Checked cases with n = {}, j_2 = {}, j_3 = {}", n, j2, j3);
              });
          }
 
