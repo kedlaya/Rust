@@ -25,7 +25,7 @@ fn loop_over_roots(n: u32, len: usize, mut f: &File) {
        // Note: we allow n as an exponent as a proxy for a zero summand.
        let (tx, rx) = mpsc::channel();
        for j3 in (0..=n).filter(|x| euclid_u32(*x, n) >= j2) {
-           let tx1 = tx.clone();
+           let tx_clone = tx.clone();
            thread::spawn(move || {
                let mut l: Vec<u32> = vec![0; len];
                l[0] = 0;
@@ -115,7 +115,7 @@ fn loop_over_roots(n: u32, len: usize, mut f: &File) {
                    }
 
                    // Record this case
-                   tx1.send(l.clone()).unwrap();
+                   tx_clone.send(l.clone()).unwrap();
                }
                println!("Checked cases with n = {}, j_2 = {}, j_3 = {}", n, j2, j3);
              });
