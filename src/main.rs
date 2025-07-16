@@ -9,7 +9,7 @@ use itertools::Itertools;
 
 use gcd::euclid_u32;
 
-fn loop_over_roots(n: u32, len: usize, mut f: &File) -> std::io::Result<()> {
+fn loop_over_roots(n: u32, len: usize, mut f: &File) {
     let n2 = if n%2 == 0 {n / 2} else {0};
     let n3 = if (n2 != 0) && (n%3 == 0) {n / 3} else {0};
     let n5 = if (n2 != 0) && (n%5 == 0) {n / 5} else {0};
@@ -129,7 +129,6 @@ fn loop_over_roots(n: u32, len: usize, mut f: &File) -> std::io::Result<()> {
         }
     }
 
-    Ok(())
 }
 
 fn main() -> std::io::Result<()> {
@@ -137,16 +136,16 @@ fn main() -> std::io::Result<()> {
    println!("All tests passed!");
 
    let f = File::create("output.txt")?;
-   let _ = loop_over_roots(2*31, 6, &f);
-   let _ = loop_over_roots(2*23, 6, &f);
-   let _ = loop_over_roots(2*19, 9, &f);
-   let _ = loop_over_roots(2*3*13, 7, &f);
-   let _ = loop_over_roots(2*5*13, 5, &f);
-   let _ = loop_over_roots(2*2*3*5*7*11*13, 4, &f);
-   let _ = loop_over_roots(2*3*7*11*13, 5, &f);
-   let _ = loop_over_roots(2*3*5*11, 6, &f);
-   let _ = loop_over_roots(2*2*3*5*7*11, 5, &f);
-   let _ = loop_over_roots(2*2*3*5*7, 7, &f);
+   loop_over_roots(2*31, 6, &f);
+   loop_over_roots(2*23, 6, &f);
+   loop_over_roots(2*19, 9, &f);
+   loop_over_roots(2*3*13, 7, &f);
+   loop_over_roots(2*5*13, 5, &f);
+   loop_over_roots(2*2*3*5*7*11*13, 4, &f);
+   loop_over_roots(2*3*7*11*13, 5, &f);
+   loop_over_roots(2*3*5*11, 6, &f);
+   loop_over_roots(2*2*3*5*7*11, 5, &f);
+   loop_over_roots(2*2*3*5*7, 7, &f);
 
    println!("All cases checked!");
    Ok(())
