@@ -1,6 +1,6 @@
 mod cyclotomic;
 
-use cyclotomic::{CyclotomicIntegerExponents, test_cyclotomic_integer_exponents};
+use cyclotomic::{cosine_sine_table, CyclotomicIntegerExponents, test_cyclotomic_integer_exponents};
 use std::fs::File;
 use std::io::Write;
 use std::sync::mpsc;
@@ -9,11 +9,18 @@ use itertools::Itertools;
 
 use gcd::euclid_u32;
 
-fn loop_over_roots(n: u32, len: usize, mut f: &File) {
-    let n2 = if n%2 == 0 {n / 2} else {0};
-    let n3 = if (n2 != 0) && (n%3 == 0) {n / 3} else {0};
-    let n5 = if (n2 != 0) && (n%5 == 0) {n / 5} else {0};
-    let n7 = if (n2 != 0) && (n%7 == 0) {n / 7} else {0};
+fn loop_over_roots(n0: u32, len: usize, mut f1: &File, mut f2: &File) {
+    let n = if n0%2 == 0 {n0} else {2*n0};
+    let n2 = n / 2;
+    let n3 = if n%3 == 0 {n / 3} else {0};
+    let n5 = if n%5 == 0 {n / 5} else {0};
+    let n7 = if n%7 == 0 {n / 7} else {0};
+
+    // Generate and output a table of cosines and signs.
+    let (cos_table, sin_table) = cosine_sine_table(n);
+    for j in 0..n {
+        write!(f1, "{} {} {} {}\n", n, j, cos_table[j as usize], sin_table[j as usize]).expect("output failure");
+    }
 
     for j2 in 1..n {
        // Require that j_2 divides n.
@@ -21,11 +28,13 @@ fn loop_over_roots(n: u32, len: usize, mut f: &File) {
            continue;
        }
        // Loop over tuples [j_3, ..., j_*] with 0 <= j_3 <= ... <= j_* <= n,
-       // also requiring that gcd(j_i, n) >= j_2.
+       // also requiring that gcd(j_i, n) >= j_2 and j_3 < n.
        // Note: we allow n as an exponent as a proxy for a zero summand.
        let (tx, rx) = mpsc::channel();
-       for j3 in (0..=n).filter(|x| euclid_u32(*x, n) >= j2) {
+       for j3 in (0..n).filter(|x| euclid_u32(*x, n) >= j2) {
            let tx_clone = tx.clone();
+           let cos_table_local = cos_table.clone();
+           let sin_table_local = sin_table.clone();
            thread::spawn(move || {
                let mut l: Vec<u32> = vec![0; len];
                l[0] = 0;
@@ -45,13 +54,11 @@ fn loop_over_roots(n: u32, len: usize, mut f: &File) {
                    }
 
                    // Skip cases where two roots of unity differ by a factor of -1.
-                   if n2 != 0 {
-                       for a in 0..len {
-                           if l[a] < n {
-                               for b in 0..a {
-                                   if l[a] == l[b] + n2 {
-                                       continue 'inner;
-                                   }
+                   for a in 0..len {
+                       if l[a] < n {
+                           for b in 0..a {
+                               if l[a] == l[b] + n2 {
+                                   continue 'inner;
                                }
                            }
                        }
@@ -88,7 +95,7 @@ fn loop_over_roots(n: u32, len: usize, mut f: &File) {
                    }
 
                    // Filter for house squared <= 5.1
-                   let ex = CyclotomicIntegerExponents{ exponents: l.clone(), level: n };
+                   let ex = CyclotomicIntegerExponents{ exponents: &l, level: n, cos_table: &cos_table_local, sin_table: &sin_table_local };
                    if !ex.compare_house_squared(5.1 as f64) {
                       continue 'inner;
                    }
@@ -125,7 +132,7 @@ fn loop_over_roots(n: u32, len: usize, mut f: &File) {
         drop(tx);
         for l in rx {
             println!("{:?}", l);
-            write!(f, "{}; {:?}\n", n, l).expect("output failure");
+            write!(f2, "{}; {:?}\n", n, l).expect("output failure");
         }
     }
 
@@ -135,17 +142,33 @@ fn main() -> std::io::Result<()> {
    test_cyclotomic_integer_exponents();
    println!("All tests passed!");
 
-   let f = File::create("output.txt")?;
-   loop_over_roots(2*31, 6, &f);
-   loop_over_roots(2*23, 6, &f);
-   loop_over_roots(2*19, 9, &f);
-   loop_over_roots(2*3*13, 7, &f);
-   loop_over_roots(2*5*13, 5, &f);
-   loop_over_roots(2*2*3*5*7*11*13, 4, &f);
-   loop_over_roots(2*3*7*11*13, 5, &f);
-   loop_over_roots(2*3*5*11, 6, &f);
-   loop_over_roots(2*2*3*5*7*11, 5, &f);
-   loop_over_roots(2*2*3*5*7, 7, &f);
+   let f1 = File::create("tables.txt")?;
+   let f2 = File::create("output.txt")?;
+//   loop_over_roots(2*2*7*11, 8, &f1, &f2);
+//   loop_over_roots(2*2*7*13, 7, &f1, &f2);   
+//   loop_over_roots(2*2*2*3*13, 7, &f1, &f2);
+   loop_over_roots(31, 6, &f1, &f2);
+   loop_over_roots(23, 6, &f1, &f2);
+   loop_over_roots(19, 9, &f1, &f2);
+   loop_over_roots(2*2*3*5*7*11*13, 4, &f1, &f2);
+   loop_over_roots(3*7*11*13, 5, &f1, &f2);
+   loop_over_roots(5*13, 5, &f1, &f2);
+//   loop_over_roots(2*2*2*3*13, 7, &f1, &f2);
+   loop_over_roots(2*2*13, 6, &f1, &f2);
+   loop_over_roots(2*2*3*5*7*11, 5, &f1, &f2);
+   loop_over_roots(3*5*11, 6, &f1, &f2);
+//   loop_over_roots(3*5*7*11, 6, &f1, &f2);
+//   loop_over_roots(2*2*2*3*11, 8, &f1, &f2);
+   loop_over_roots(2*2*2*3*3*5*7, 4, &f1, &f2);
+   loop_over_roots(2*2*3*5*7, 7, &f1, &f2);
+   loop_over_roots(3*3*7, 6, &f1, &f2);
+//   loop_over_roots(2*2*2*3*7, 5, &f1, &f2);
+   loop_over_roots(2*2*3*7, 8, &f1, &f2);
+//   loop_over_roots(2*2*2*2*7, 6, &f1, &f2);
+   loop_over_roots(2*2*2*2*3*5, 4, &f1, &f2);
+   loop_over_roots(2*2*3*5, 8, &f1, &f2);
+   loop_over_roots(3*3*5, 6, &f1, &f2);
+   loop_over_roots(2*2*2*3, 4, &f1, &f2);
 
    println!("All cases checked!");
    Ok(())
