@@ -94,7 +94,7 @@ fn loop_over_roots(n0: u32, len: usize, mut f1: &File, mut f2: &File) {
                        }
                    }
 
-                   // Filter for house squared <= 5.1
+                   // Filter for house squared <= 5.1.
                    let ex = CyclotomicIntegerExponents{ exponents: &l, level: n, cos_table: &cos_table_local, sin_table: &sin_table_local };
                    if !ex.compare_house_squared(5.1 as f64) {
                       continue 'inner;
@@ -144,31 +144,26 @@ fn main() -> std::io::Result<()> {
 
    let f1 = File::create("tables.txt")?;
    let f2 = File::create("output.txt")?;
-//   loop_over_roots(2*2*7*11, 8, &f1, &f2);
-//   loop_over_roots(2*2*7*13, 7, &f1, &f2);   
-//   loop_over_roots(2*2*2*3*13, 7, &f1, &f2);
-   loop_over_roots(31, 6, &f1, &f2);
-   loop_over_roots(23, 6, &f1, &f2);
    loop_over_roots(19, 9, &f1, &f2);
-   loop_over_roots(2*2*3*5*7*11*13, 4, &f1, &f2);
+   loop_over_roots(2*2*3*7, 8, &f1, &f2);
+   loop_over_roots(2*2*3*5, 8, &f1, &f2);
+   loop_over_roots(7*13, 7, &f1, &f2);
+   loop_over_roots(2*2*3*5*7, 7, &f1, &f2);
+   loop_over_roots(31, 6, &f1, &f2);
+   loop_over_roots(29, 6, &f1, &f2);
+   loop_over_roots(23, 6, &f1, &f2);
+   loop_over_roots(2*2*13, 6, &f1, &f2);
+   loop_over_roots(3*5*11, 6, &f1, &f2);
+   loop_over_roots(3*3*7, 6, &f1, &f2);
+   loop_over_roots(3*3*5, 6, &f1, &f2);
    loop_over_roots(3*7*11*13, 5, &f1, &f2);
    loop_over_roots(5*13, 5, &f1, &f2);
-//   loop_over_roots(2*2*2*3*13, 7, &f1, &f2);
-   loop_over_roots(2*2*13, 6, &f1, &f2);
    loop_over_roots(2*2*3*5*7*11, 5, &f1, &f2);
-   loop_over_roots(3*5*11, 6, &f1, &f2);
-//   loop_over_roots(3*5*7*11, 6, &f1, &f2);
-//   loop_over_roots(2*2*2*3*11, 8, &f1, &f2);
+   loop_over_roots(5*19, 4, &f1, &f2);
+   loop_over_roots(5*17, 4, &f1, &f2);
+   loop_over_roots(2*2*3*5*7*11*13, 4, &f1, &f2);
    loop_over_roots(2*2*2*3*3*5*7, 4, &f1, &f2);
-   loop_over_roots(2*2*3*5*7, 7, &f1, &f2);
-   loop_over_roots(3*3*7, 6, &f1, &f2);
-//   loop_over_roots(2*2*2*3*7, 5, &f1, &f2);
-   loop_over_roots(2*2*3*7, 8, &f1, &f2);
-//   loop_over_roots(2*2*2*2*7, 6, &f1, &f2);
    loop_over_roots(2*2*2*2*3*5, 4, &f1, &f2);
-   loop_over_roots(2*2*3*5, 8, &f1, &f2);
-   loop_over_roots(3*3*5, 6, &f1, &f2);
-   loop_over_roots(2*2*2*3, 4, &f1, &f2);
 
    println!("All cases checked!");
    Ok(())
