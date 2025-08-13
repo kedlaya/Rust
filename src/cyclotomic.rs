@@ -5,6 +5,10 @@ use gcd::euclid_u32;  // I'm sad this is not in the standard library
 use std::f64::consts::TAU;
 
 pub fn cosine_sine_table(n: u32) -> (Vec<f64>, Vec<f64>) {
+    /// Return a tuple containing two vectors:
+    /// - the first one contains the elements cos(tau * i/n)
+    ///   for i ranging from 0 to n;
+    /// - the second one contains the same elements, but for sin.
     let mut cos_table: Vec<f64> = Vec::new();
     let mut sin_table: Vec<f64> = Vec::new();
     let angle0 = TAU / (n as f64);
