@@ -4,6 +4,7 @@ use cyclotomic::{cosine_sine_table, CyclotomicIntegerExponents, test_cyclotomic_
 use std::fs::File;
 use std::io::Write;
 use std::sync::mpsc;
+use std::sync::Arc;
 use std::thread;
 use itertools::Itertools;
 
@@ -18,8 +19,10 @@ fn loop_over_roots(n0: u32, len: usize, mut f1: &File, mut f2: &File) {
 
     // Generate and output a table of cosines and signs.
     let (cos_table, sin_table) = cosine_sine_table(n);
+    let cos_table_Arc = Arc::new(cos_table);
+    let sin_table_Arc = Arc::new(sin_table);
     for j in 0..n {
-        write!(f1, "{} {} {} {}\n", n, j, cos_table[j as usize], sin_table[j as usize]).expect("output failure");
+        write!(f1, "{} {} {} {}\n", n, j, cos_table_Arc[j as usize], sin_table_Arc[j as usize]).expect("output failure");
     }
 
     for j2 in 1..n {
@@ -33,8 +36,10 @@ fn loop_over_roots(n0: u32, len: usize, mut f1: &File, mut f2: &File) {
        let (tx, rx) = mpsc::channel();
        for j3 in (0..n).filter(|x| euclid_u32(*x, n) >= j2) {
            let tx_clone = tx.clone();
-           let cos_table_local = cos_table.clone();
-           let sin_table_local = sin_table.clone();
+           // Use Arc cloning to make a new reference to the tables.
+           // The point is that this points to the *same* underlying memory.
+           let cos_table_local = Arc::clone(&cos_table_Arc);
+           let sin_table_local = Arc::clone(&sin_table_Arc);
            thread::spawn(move || {
                let mut l: Vec<u32> = vec![0; len];
                l[0] = 0;

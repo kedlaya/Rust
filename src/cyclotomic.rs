@@ -5,14 +5,16 @@ use gcd::euclid_u32;  // I'm sad this is not in the standard library
 use std::f64::consts::TAU;
 
 pub fn cosine_sine_table(n: u32) -> (Vec<f64>, Vec<f64>) {
-    let mut cos_table: Vec<f64> = Vec::new();
-    let mut sin_table: Vec<f64> = Vec::new();
+    let mut cos_table_tmp: Vec<f64> = Vec::new();
+    let mut sin_table_tmp: Vec<f64> = Vec::new();
     let angle0 = TAU / (n as f64);
 
     for j in 0..n {
-        cos_table.push((angle0 * (j as f64)).cos());
-        sin_table.push((angle0 * (j as f64)).sin());
+        cos_table_tmp.push((angle0 * (j as f64)).cos());
+        sin_table_tmp.push((angle0 * (j as f64)).sin());
     }
+    let cos_table: Vec<f64> = cos_table_tmp.clone();
+    let sin_table: Vec<f64> = sin_table_tmp.clone();
     (cos_table, sin_table)
 }
 
