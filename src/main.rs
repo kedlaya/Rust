@@ -19,17 +19,14 @@ fn loop_over_roots(n0: u32, len: usize, mut f1: &File, mut f2: &File) {
 
     // Generate and output a table of cosines and signs.
     let (cos_table, sin_table) = cosine_sine_table(n);
+    for j in 0..n {
+        write!(f1, "{} {} {} {}\n", n, j, cos_table[j as usize], sin_table[j as usize]).expect("output failure");
+    }
     let cos_table_Arc = Arc::new(cos_table);
     let sin_table_Arc = Arc::new(sin_table);
-    for j in 0..n {
-        write!(f1, "{} {} {} {}\n", n, j, cos_table_Arc[j as usize], sin_table_Arc[j as usize]).expect("output failure");
-    }
 
-    for j2 in 1..n {
-       // Require that j_2 divides n.
-       if n % j2 != 0 {
-           continue;
-       }
+    // Loop over proper divisors j_2 of n.
+    for j2 in (1..n).filter(|x| n % x == 0) {
        // Loop over tuples [j_3, ..., j_*] with 0 <= j_3 <= ... <= j_* <= n,
        // also requiring that gcd(j_i, n) >= j_2 and j_3 < n.
        // Note: we allow n as an exponent as a proxy for a zero summand.
