@@ -98,12 +98,12 @@ fn loop_over_roots(n0: u32, len: usize, mut f1: &File, mut f2: &File) {
 
                    // Skip cases visibly of form (2) of Cassels's theorem.
                    if l[3] == n {
-                       if (l[2] == n/2 - 1) || (l[2] == n/2 + 2) || ((2*l[2]) % n == n/2 + 1) {
+                       if (l[2] == n/2 - l[1]) || (l[2] == n/2 + 2*l[1]) || ((2*l[2]) % n == n/2 + l[1]) {
                            continue 'inner;
                        }
                    }
 
-                   // Filter for house squared <= 5.1.
+                   // Filter for house squared <= 5.01.
                    let ex = CyclotomicIntegerExponents{ exponents: &l, level: n, cos_table: &cos_table_local, sin_table: &sin_table_local };
                    if !ex.compare_house_squared(5.01 as f64) {
                       continue 'inner;
