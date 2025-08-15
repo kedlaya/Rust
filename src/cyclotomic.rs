@@ -17,6 +17,7 @@ pub fn cosine_sine_table(n: u32) -> (Vec<f64>, Vec<f64>) {
         cos_table_tmp.push((angle0 * (j as f64)).cos());
         sin_table_tmp.push((angle0 * (j as f64)).sin());
     }
+    // Make immutable copies
     let cos_table: Vec<f64> = cos_table_tmp.clone();
     let sin_table: Vec<f64> = sin_table_tmp.clone();
     (cos_table, sin_table)
