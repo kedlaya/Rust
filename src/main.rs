@@ -22,8 +22,8 @@ fn loop_over_roots(n0: u32, len: usize, mut f1: &File, mut f2: &File) {
     for j in 0..n {
         write!(f1, "{} {} {} {}\n", n, j, cos_table[j as usize], sin_table[j as usize]).expect("output failure");
     }
-    let cos_table_Arc = Arc::new(cos_table);
-    let sin_table_Arc = Arc::new(sin_table);
+    let cos_table_arc = Arc::new(cos_table);
+    let sin_table_arc = Arc::new(sin_table);
 
     // Loop over proper divisors j_2 of n.
     for j2 in (1..n).filter(|x| n % x == 0) {
@@ -35,8 +35,8 @@ fn loop_over_roots(n0: u32, len: usize, mut f1: &File, mut f2: &File) {
            let tx_clone = tx.clone();
            // Use Arc cloning to make a new reference to the tables.
            // The point is that this points to the *same* underlying memory.
-           let cos_table_local = Arc::clone(&cos_table_Arc);
-           let sin_table_local = Arc::clone(&sin_table_Arc);
+           let cos_table_local = Arc::clone(&cos_table_arc);
+           let sin_table_local = Arc::clone(&sin_table_arc);
            thread::spawn(move || {
                let mut l: Vec<u32> = vec![0; len];
                l[0] = 0;
@@ -96,9 +96,9 @@ fn loop_over_roots(n0: u32, len: usize, mut f1: &File, mut f2: &File) {
                        }
                    }
 
-                   // Filter for house squared <= 5.01.
+                   // Filter for house squared <= 5.1.
                    let ex = CyclotomicIntegerExponents{ exponents: &l, level: n, cos_table: &cos_table_local, sin_table: &sin_table_local };
-                   if !ex.compare_house_squared(5.01 as f64) {
+                   if !ex.compare_house_squared(5.1 as f64) {
                       continue 'inner;
                    }
                    
