@@ -96,19 +96,28 @@ fn loop_over_roots(n0: u32, len: usize, mut f1: &File, mut f2: &File) {
                        }
                    }
 
-                   // Skip cases visibly of form (2) of Cassels's theorem.
-                   if l[3] == n {
-                       if (l[2] == n/2 - l[1]) || (l[2] == n/2 + 2*l[1]) || ((2*l[2]) % n == n/2 + l[1]) {
-                           continue 'inner;
-                       }
-                   }
-
                    // Filter for house squared <= 5.01.
                    let ex = CyclotomicIntegerExponents{ exponents: &l, level: n, cos_table: &cos_table_local, sin_table: &sin_table_local };
                    if !ex.compare_house_squared(5.01 as f64) {
                       continue 'inner;
                    }
                    
+                   // Skip cases visibly of form (2) of Cassels's theorem.
+                   if l[3] == n {
+                       if (l[2] == n/2 - l[1]) || (l[2] == n/2 + 2*l[1]) || ((2*l[2]) % n == n/2 + l[1]) {
+                           continue 'inner;
+                       }
+                   }
+                   
+                   // Skip cases visibly of form (3) of Cassels's theorem.
+                   if (n5 != 0) && (l[3] != n) && ((len == 4) || (l[4] == n)) {
+                       for (i, i1, i2) in [(1,2,3), (2,1,3), (3,1,2)] {
+                           if ((l[i] - l[0]) % n5 == 0) && ((l[i2] - l[i1]) % n5 == 0) && (l[i] - l[0] != l[i2] - l[i1]) && (l[1] - l[0] + l[i2] - l[i1] != n) {
+                               continue 'inner;
+                           }
+                       }
+                   }
+
                    // Skip cases where four roots of unity differ by factors of zeta_7.
                    if n7 != 0 {
                        for a in 0..len {
