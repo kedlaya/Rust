@@ -47,18 +47,15 @@ pub fn loop_over_roots(n0: u32, max_len: usize, mut file_tables: &File, mut file
                         let l: Vec<u32> = vec![0, j2, j3].into_iter().chain(iter).collect();
 
                         // Remove some cases made redundant by complex conjugation.
-                        if    l[len-1] < n
-                           && l[2] + l[len-1] > n + l[1] {
+                        if l[2] + l[len-1] > n + l[1] {
                             continue 'skipping_cases;
                         }
 
                         // Skip cases where two roots of unity differ by a factor of -1.
                         for a in 0..len {
-                            if l[a] < n {
-                                for b in 0..a {
-                                    if l[a] == l[b] + n2 {
-                                        continue 'skipping_cases;
-                                    }
+                            for b in 0..a {
+                                if l[a] == l[b] + n2 {
+                                    continue 'skipping_cases;
                                 }
                             }
                         }
@@ -66,12 +63,10 @@ pub fn loop_over_roots(n0: u32, max_len: usize, mut file_tables: &File, mut file
                         // Skip cases where two roots of unity differ by a factor of zeta_3.
                         if n3 != 0 {
                             for a in 0..len {
-                                if l[a] < n {
-                                    for b in 0..a {
-                                        if    l[a] == l[b] + n3
-                                           || l[a] == l[b] + 2*n3 {
-                                            continue 'skipping_cases;
-                                        }
+                                for b in 0..a {
+                                    if    l[a] == l[b] + n3
+                                       || l[a] == l[b] + 2*n3 {
+                                        continue 'skipping_cases;
                                     }
                                 }
                             }
@@ -80,15 +75,13 @@ pub fn loop_over_roots(n0: u32, max_len: usize, mut file_tables: &File, mut file
                         // Skip cases where three roots of unity differ by factors of zeta_5.
                         if n5 != 0 {
                             for a in 0..len {
-                                if l[a] < n {
-                                    for b in 0..a {
-                                        if     l[a] > l[b]
-                                            && (l[a]-l[b]) % n5 == 0 {
-                                            for c in 0..b {
-                                                if    l[b] > l[c]
-                                                   && (l[b]-l[c]) % n5 == 0 {
-                                                    continue 'skipping_cases;
-                                                }
+                                for b in 0..a {
+                                    if     l[a] > l[b]
+                                        && (l[a]-l[b]) % n5 == 0 {
+                                        for c in 0..b {
+                                            if    l[b] > l[c]
+                                               && (l[b]-l[c]) % n5 == 0 {
+                                                continue 'skipping_cases;
                                             }
                                         }
                                     }
@@ -105,7 +98,7 @@ pub fn loop_over_roots(n0: u32, max_len: usize, mut file_tables: &File, mut file
                         }
                         
                         // Skip cases visibly of form (2) of Cassels's theorem.
-                        if l[3] == n {
+                        if len == 3 {
                             if    l[2] == n/2 - l[1]
                                || l[2] == n/2 + 2*l[1]
                                || (2*l[2]) % n == n/2 + l[1] {
@@ -115,7 +108,7 @@ pub fn loop_over_roots(n0: u32, max_len: usize, mut file_tables: &File, mut file
                         
                         // Skip cases visibly of form (3) of Cassels's theorem.
                         if     n5 != 0
-                            && l[3] != n
+                            && len != 3
                             && ((len == 4) || (l[4] == n)) {
                             for (i, i1, i2) in [(1,2,3), (2,1,3), (3,1,2)] {
                                 if    (l[i] - l[0]) % n5 == 0
@@ -130,18 +123,16 @@ pub fn loop_over_roots(n0: u32, max_len: usize, mut file_tables: &File, mut file
                         // Skip cases where four roots of unity differ by factors of zeta_7.
                         if n7 != 0 {
                             for a in 0..len {
-                                if l[a] < n {
-                                    for b in 0..a {
-                                        if    l[a] > l[b]
-                                           && (l[a]-l[b]) % n7 == 0 {
-                                            for c in 0..b {
-                                                if     l[b] > l[c]
-                                                    && (l[b]-l[c]) % n7 == 0 {
-                                                    for d in 0..c {
-                                                        if    l[c] > l[d]
-                                                           && (l[c]-l[d]) % n7 == 0 {
-                                                            continue 'skipping_cases;
-                                                        }
+                                for b in 0..a {
+                                    if    l[a] > l[b]
+                                       && (l[a]-l[b]) % n7 == 0 {
+                                        for c in 0..b {
+                                            if     l[b] > l[c]
+                                                && (l[b]-l[c]) % n7 == 0 {
+                                                for d in 0..c {
+                                                    if    l[c] > l[d]
+                                                       && (l[c]-l[d]) % n7 == 0 {
+                                                        continue 'skipping_cases;
                                                     }
                                                 }
                                             }
