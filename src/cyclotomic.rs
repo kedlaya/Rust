@@ -3,30 +3,26 @@ use gcd::euclid_u32;  // I'm sad this is not in the standard library
 // First: standard library
 use std::f64::consts::TAU;
 
-pub fn cosine_sine_table(n: u32) -> (Vec<f64>, Vec<f64>) {
-    /// Return a tuple containing two vectors:
-    /// - the first one contains the elements cos(tau * i/n)
-    ///   for i ranging from 0 to n;
-    /// - the second one contains the same elements, but for sin.
-    let mut cos_table_tmp: Vec<f64> = Vec::new();
-    let mut sin_table_tmp: Vec<f64> = Vec::new();
+pub fn sin_cos_table(n: u32) -> Vec<(f64, f64)> {
+
+    // TODO: We probably don't need the tmp anymore.
+    let mut sin_cos_table_tmp: Vec<(f64, f64)> = Vec::new();
     let angle0 = TAU / (n as f64);
 
     for j in 0..n {
-        cos_table_tmp.push((angle0 * (j as f64)).cos());
-        sin_table_tmp.push((angle0 * (j as f64)).sin());
+        let sin_cos = (angle0 * (j as f64)).sin_cos();
+        sin_cos_table_tmp.push(sin_cos);
     }
     // Make immutable copies
-    let cos_table: Vec<f64> = cos_table_tmp.clone();
-    let sin_table: Vec<f64> = sin_table_tmp.clone();
-    (cos_table, sin_table)
+    let sin_cos_table: Vec<(f64, f64)> = sin_cos_table_tmp.clone();
+
+    sin_cos_table
 }
 
 pub struct CyclotomicIntegerExponents<'a> {
     pub exponents: &'a Vec<u32>,
     pub level: u32,
-    pub cos_table: &'a Vec<f64>,
-    pub sin_table: &'a Vec<f64>
+    pub sin_cos_table: &'a Vec<(f64, f64)>,
 }
 
 impl CyclotomicIntegerExponents<'_> {
@@ -49,9 +45,11 @@ impl CyclotomicIntegerExponents<'_> {
                 let mut sin_sum: f64 = 0.0;
                 for j in self.exponents {
                     if *j < self.level {
-                        let i = ((k*j)%self.level) as usize;
-                        cos_sum += self.cos_table[i];
-                        sin_sum += self.sin_table[i];
+                        let i = (k*j % self.level) as usize;
+                        // If only we could sum tuples directly...
+                        let (sin, cos) = self.sin_cos_table[i];
+                        cos_sum += cos;
+                        sin_sum += sin;
                     }
                 }
 
@@ -99,14 +97,17 @@ fn float_equality(x: f64, y: f64) -> bool {
 pub fn test_cyclotomic_integer_exponents() {
     // Tests for CyclotomicIntegerExponents
 
+    // This is necessary as otherwise there is a conflict between the variable sin_cos_table,
+    // and the function. This is called shadowing, see `rustc --explain E0618`.
+    let sin_cos_table_fn = sin_cos_table;
+
     // Test 1
     // Randomly taken from SageMath
-    let (cos_table, sin_table) = cosine_sine_table(7);
+    let sin_cos_table = sin_cos_table_fn(7);
     let l = vec![0, 1, 3, 5];
     let ex1 = CyclotomicIntegerExponents{ exponents: &l,
                                           level: 7,
-                                          cos_table: &cos_table,
-                                          sin_table: &sin_table
+                                          sin_cos_table: &sin_cos_table
     };
     let sage_res1: f64 = 5.04891733952231;
     assert!(float_equality(ex1.house_squared(), sage_res1));
@@ -115,24 +116,22 @@ pub fn test_cyclotomic_integer_exponents() {
 
     // Test 2
     // Taken from table 1 of Kiran's notes
-    let (cos_table, sin_table) = cosine_sine_table(31);
+    let sin_cos_table = sin_cos_table_fn(31);
     let l = vec![0, 1, 3, 8, 12, 18];
     let ex2 = CyclotomicIntegerExponents{ exponents: &l,
                                           level: 31,
-                                          cos_table: &cos_table,
-                                          sin_table: &sin_table
+                                          sin_cos_table: &sin_cos_table
     };
     assert!(float_equality(ex2.house_squared(), 5 as f64));
     assert!(ex2.compare_house_squared(5.000001 as f64));
 
     // Test 3
     // Taken from table 1 of Kiran's notes
-    let (cos_table, sin_table) = cosine_sine_table(70);
+    let sin_cos_table = sin_cos_table_fn(70);
     let l = vec![0, 1, 11, 42, 51];
     let ex3 = CyclotomicIntegerExponents{ exponents: &l,
                                           level: 70,
-                                          cos_table: &cos_table,
-                                          sin_table: &sin_table
+                                          sin_cos_table: &sin_cos_table
     };
     assert!(float_equality(ex3.house_squared(), 3 as f64));
     assert!(ex3.compare_house_squared(3.000001 as f64));
@@ -140,23 +139,21 @@ pub fn test_cyclotomic_integer_exponents() {
 
     // Test 4
     // i (imaginary unit)
-    let (cos_table, sin_table) = cosine_sine_table(4);
+    let sin_cos_table = sin_cos_table_fn(4);
     let l = vec![1];
     let ex4 = CyclotomicIntegerExponents{ exponents: &l,
                                           level: 4,
-                                          cos_table: &cos_table,
-                                          sin_table: &sin_table
+                                          sin_cos_table: &sin_cos_table
     };
     assert_eq!(ex4.house_squared(), 1 as f64);
 
     // Test 5
     // 1+i (imaginary unit)
-    let (cos_table, sin_table) = cosine_sine_table(4);
+    let sin_cos_table = sin_cos_table_fn(4);
     let l = vec![0, 1];
     let ex5 = CyclotomicIntegerExponents{ exponents: &l,
                                           level: 4,
-                                          cos_table: &cos_table,
-                                          sin_table: &sin_table
+                                          sin_cos_table: &sin_cos_table
     };
     assert_eq!(ex5.house_squared(), 2 as f64);
 }
