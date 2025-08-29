@@ -1,4 +1,4 @@
-use super::cyclotomic::{cosine_sine_table, CyclotomicIntegerExponents, test_cyclotomic_integer_exponents};
+use super::cyclotomic::{sin_cos_table, CyclotomicIntegerExponents, test_cyclotomic_integer_exponents};
 use std::fs::File;
 use std::io::Write;
 use std::sync::mpsc;
@@ -16,12 +16,14 @@ pub fn loop_over_roots(n0: u32, len: usize, mut file_tables: &File, mut file_out
     let n7 = if n%7 == 0 {n/7} else {0};
 
     // Generate and output a table of cosines and signs.
-    let (cos_table, sin_table) = cosine_sine_table(n);
+    let sin_cos_table = sin_cos_table(n);
     for j in 0..n {
-        write!(file_tables, "{} {} {} {}\n", n, j, cos_table[j as usize], sin_table[j as usize]).expect("output failure");
+        let (sin, cos) = sin_cos_table[j as usize];
+        // TODO: Would be better to output sin, cos, in that order.
+        //       But one has to be very careful.
+        write!(file_tables, "{} {} {} {}\n", n, j, cos, sin).expect("output failure");
     }
-    let cos_table_arc = Arc::new(cos_table);
-    let sin_table_arc = Arc::new(sin_table);
+    let sin_cos_table_arc = Arc::new(sin_cos_table);
 
     // Loop over proper divisors j_2 of n.
     for j2 in (1..n).filter(|x| n % x == 0) {
@@ -33,8 +35,7 @@ pub fn loop_over_roots(n0: u32, len: usize, mut file_tables: &File, mut file_out
            let tx_clone = tx.clone();
            // Use Arc cloning to make a new reference to the tables.
            // The point is that this points to the *same* underlying memory.
-           let cos_table_local = Arc::clone(&cos_table_arc);
-           let sin_table_local = Arc::clone(&sin_table_arc);
+           let sin_cos_table_local = Arc::clone(&sin_cos_table_arc);
            thread::spawn(move || {
                let mut l: Vec<u32> = vec![0; len];
                l[0] = 0;
@@ -101,8 +102,7 @@ pub fn loop_over_roots(n0: u32, len: usize, mut file_tables: &File, mut file_out
                    // Filter for house squared <= 5.1.
                    let ex = CyclotomicIntegerExponents{ exponents: &l,
                                                         level: n,
-                                                        cos_table: &cos_table_local,
-                                                        sin_table: &sin_table_local };
+                                                        sin_cos_table: &sin_cos_table_local};
                    if !ex.compare_house_squared(5.1 as f64) {
                       continue 'skipping_cases;
                    }
