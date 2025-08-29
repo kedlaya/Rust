@@ -1,12 +1,13 @@
-use super::cyclotomic::{sin_cos_table, CyclotomicIntegerExponents, test_cyclotomic_integer_exponents};
 use std::fs::File;
 use std::io::Write;
 use std::sync::mpsc;
 use std::sync::Arc;
 use std::thread;
-use itertools::Itertools;
 
 use gcd::euclid_u32;
+use itertools::Itertools;
+
+use super::cyclotomic::{sin_cos_table, CyclotomicIntegerExponents, test_cyclotomic_integer_exponents};
 
 pub fn loop_over_roots(n0: u32, len: usize, mut file_tables: &File, mut file_output: &File) {
     let n  = if n0%2 == 0 {n0} else {2*n0};
