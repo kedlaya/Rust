@@ -6,16 +6,13 @@ use std::f64::consts::TAU;
 pub fn sin_cos_table(n: u32) -> Vec<(f64, f64)> {
 
     // TODO: We probably don't need the tmp anymore.
-    let mut sin_cos_table_tmp: Vec<(f64, f64)> = Vec::new();
+    let mut sin_cos_table: Vec<(f64, f64)> = Vec::new();
     let angle0 = TAU / (n as f64);
 
     for j in 0..n {
         let sin_cos = (angle0 * (j as f64)).sin_cos();
-        sin_cos_table_tmp.push(sin_cos);
+        sin_cos_table.push(sin_cos);
     }
-    // Make immutable copies
-    let sin_cos_table: Vec<(f64, f64)> = sin_cos_table_tmp.clone();
-
     sin_cos_table
 }
 
