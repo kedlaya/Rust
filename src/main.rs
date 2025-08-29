@@ -19,17 +19,14 @@ fn loop_over_roots(n0: u32, len: usize, mut f1: &File, mut f2: &File) {
 
     // Generate and output a table of cosines and signs.
     let (cos_table, sin_table) = cosine_sine_table(n);
-    let cos_table_Arc = Arc::new(cos_table);
-    let sin_table_Arc = Arc::new(sin_table);
     for j in 0..n {
-        write!(f1, "{} {} {} {}\n", n, j, cos_table_Arc[j as usize], sin_table_Arc[j as usize]).expect("output failure");
+        write!(f1, "{} {} {} {}\n", n, j, cos_table[j as usize], sin_table[j as usize]).expect("output failure");
     }
+    let cos_table_arc = Arc::new(cos_table);
+    let sin_table_arc = Arc::new(sin_table);
 
-    for j2 in 1..n {
-       // Require that j_2 divides n.
-       if n % j2 != 0 {
-           continue;
-       }
+    // Loop over proper divisors j_2 of n.
+    for j2 in (1..n).filter(|x| n % x == 0) {
        // Loop over tuples [j_3, ..., j_*] with 0 <= j_3 <= ... <= j_* <= n,
        // also requiring that gcd(j_i, n) >= j_2 and j_3 < n.
        // Note: we allow n as an exponent as a proxy for a zero summand.
@@ -38,8 +35,8 @@ fn loop_over_roots(n0: u32, len: usize, mut f1: &File, mut f2: &File) {
            let tx_clone = tx.clone();
            // Use Arc cloning to make a new reference to the tables.
            // The point is that this points to the *same* underlying memory.
-           let cos_table_local = Arc::clone(&cos_table_Arc);
-           let sin_table_local = Arc::clone(&sin_table_Arc);
+           let cos_table_local = Arc::clone(&cos_table_arc);
+           let sin_table_local = Arc::clone(&sin_table_arc);
            thread::spawn(move || {
                let mut l: Vec<u32> = vec![0; len];
                l[0] = 0;
@@ -105,6 +102,22 @@ fn loop_over_roots(n0: u32, len: usize, mut f1: &File, mut f2: &File) {
                       continue 'inner;
                    }
                    
+                   // Skip cases visibly of form (2) of Cassels's theorem.
+                   if l[3] == n {
+                       if (l[2] == n/2 - l[1]) || (l[2] == n/2 + 2*l[1]) || ((2*l[2]) % n == n/2 + l[1]) {
+                           continue 'inner;
+                       }
+                   }
+                   
+                   // Skip cases visibly of form (3) of Cassels's theorem.
+                   if (n5 != 0) && (l[3] != n) && ((len == 4) || (l[4] == n)) {
+                       for (i, i1, i2) in [(1,2,3), (2,1,3), (3,1,2)] {
+                           if ((l[i] - l[0]) % n5 == 0) && ((l[i2] - l[i1]) % n5 == 0) && (l[i] - l[0] != l[i2] - l[i1]) && (l[1] - l[0] + l[i2] - l[i1] != n) {
+                               continue 'inner;
+                           }
+                       }
+                   }
+
                    // Skip cases where four roots of unity differ by factors of zeta_7.
                    if n7 != 0 {
                        for a in 0..len {
