@@ -3,8 +3,8 @@
 version = 4
 
 [[package]]
-name = "cassel"
-version = "0.1.0"
+name = "cassels"
+version = "0.0.0"
 dependencies = [
  "gcd",
  "itertools",

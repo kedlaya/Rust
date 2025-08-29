@@ -1,7 +1,6 @@
 [package]
-name = "cassel"
-version = "0.1.0"
-edition = "2024"
+name = "cassels"
+edition = "2024"  # Rust edition, latest at the moment of writing
 
 [dependencies]
 gcd = "2.3.0"

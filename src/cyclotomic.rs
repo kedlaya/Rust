@@ -1,4 +1,3 @@
-// use crate::integers;
 use gcd::euclid_u32;  // I'm sad this is not in the standard library
 
 // First: standard library
