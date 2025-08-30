@@ -19,14 +19,14 @@ fn skip_cyclotomic_integer(cyclotomic_integer: &CyclotomicIntegerExponents,
 
     // Remove some cases made redundant by complex conjugation.
     if l[2] + l[len-1] > n + l[1] {
-        return false;
+        return true;
     }
 
     // Skip cases where two roots of unity differ by a factor of -1.
     for a in 0..len {
         for b in 0..a {
             if l[a] == l[b] + n2 {
-                return false;
+                return true;
             }
         }
     }
@@ -37,7 +37,7 @@ fn skip_cyclotomic_integer(cyclotomic_integer: &CyclotomicIntegerExponents,
             for b in 0..a {
                 if    l[a] == l[b] + n3
                    || l[a] == l[b] + 2*n3 {
-                    return false;
+                    return true;
                 }
             }
         }
@@ -52,7 +52,7 @@ fn skip_cyclotomic_integer(cyclotomic_integer: &CyclotomicIntegerExponents,
                     for c in 0..b {
                         if    l[b] > l[c]
                            && (l[b]-l[c]) % n5 == 0 {
-                            return false;
+                            return true;
                         }
                     }
                 }
@@ -62,7 +62,7 @@ fn skip_cyclotomic_integer(cyclotomic_integer: &CyclotomicIntegerExponents,
 
     // Filter for house squared <= 5.1.
     if !cyclotomic_integer.compare_house_squared(5.1 as f64) {
-       return false;
+       return true;
     }
     
     // Skip cases visibly of form (2) of Cassels's theorem.
@@ -70,7 +70,7 @@ fn skip_cyclotomic_integer(cyclotomic_integer: &CyclotomicIntegerExponents,
         if    l[2] == n/2 - l[1]
            || l[2] == n/2 + 2*l[1]
            || (2*l[2]) % n == n/2 + l[1] {
-            return false;
+            return true;
         }
     }
     
@@ -82,7 +82,7 @@ fn skip_cyclotomic_integer(cyclotomic_integer: &CyclotomicIntegerExponents,
                && (l[i2] - l[i1]) % n5 == 0
                && l[i] - l[0] != l[i2] - l[i1]
                && l[1] - l[0] + l[i2] - l[i1] != n {
-                return false;
+                return true;
             }
         }
     }
@@ -99,7 +99,7 @@ fn skip_cyclotomic_integer(cyclotomic_integer: &CyclotomicIntegerExponents,
                             for d in 0..c {
                                 if    l[c] > l[d]
                                    && (l[c]-l[d]) % n7 == 0 {
-                                    return false;
+                                    return true;
                                 }
                             }
                         }
@@ -108,7 +108,7 @@ fn skip_cyclotomic_integer(cyclotomic_integer: &CyclotomicIntegerExponents,
             }
         }
     }
-    return false;
+    false
 }
 
 pub fn loop_over_roots(n0: u32, max_len: usize, mut file_tables: &File, mut file_output: &File) {
