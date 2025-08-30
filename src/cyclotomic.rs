@@ -94,67 +94,78 @@ fn float_equality(x: f64, y: f64) -> bool {
     (x - y).abs() < (0.000001 as f64)
 }
 
-pub fn test_cyclotomic_integer_exponents() {
-    // Tests for CyclotomicIntegerExponents
+// For idiomatic doctesting, see
+// https://doc.rust-lang.org/rust-by-example/testing/unit_testing.html
+// Basically, add tests in the module below, prefix with #[test],
+// and run `cargo test`.
 
-    // This is necessary as otherwise there is a conflict between the variable sin_cos_table,
-    // and the function. This is called shadowing, see `rustc --explain E0618`.
-    let sin_cos_table_fn = sin_cos_table;
+#[cfg(test)]
+mod tests {
 
-    // Test 1
-    // Randomly taken from SageMath
-    let sin_cos_table = sin_cos_table_fn(7);
-    let l = vec![0, 1, 3, 5];
-    let ex1 = CyclotomicIntegerExponents{ exponents: &l,
-                                          level: 7,
-                                          sin_cos_table: &sin_cos_table
-    };
-    let sage_res1: f64 = 5.04891733952231;
-    assert!(float_equality(ex1.house_squared(), sage_res1));
-    assert!(ex1.compare_house_squared(sage_res1+0.000001));
-    assert!(!ex1.compare_house_squared(5 as f64));
+    use super::*;
 
-    // Test 2
-    // Taken from table 1 of Kiran's notes
-    let sin_cos_table = sin_cos_table_fn(31);
-    let l = vec![0, 1, 3, 8, 12, 18];
-    let ex2 = CyclotomicIntegerExponents{ exponents: &l,
-                                          level: 31,
-                                          sin_cos_table: &sin_cos_table
-    };
-    assert!(float_equality(ex2.house_squared(), 5 as f64));
-    assert!(ex2.compare_house_squared(5.000001 as f64));
+    #[test]
+    fn test_castle() {
+        // Tests for CyclotomicIntegerExponents
 
-    // Test 3
-    // Taken from table 1 of Kiran's notes
-    let sin_cos_table = sin_cos_table_fn(70);
-    let l = vec![0, 1, 11, 42, 51];
-    let ex3 = CyclotomicIntegerExponents{ exponents: &l,
-                                          level: 70,
-                                          sin_cos_table: &sin_cos_table
-    };
-    assert!(float_equality(ex3.house_squared(), 3 as f64));
-    assert!(ex3.compare_house_squared(3.000001 as f64));
-    assert!(!ex3.compare_house_squared(2.999999 as f64));
+        // This is necessary as otherwise there is a conflict between the variable sin_cos_table,
+        // and the function. This is called shadowing, see `rustc --explain E0618`.
+        let sin_cos_table_fn = sin_cos_table;
 
-    // Test 4
-    // i (imaginary unit)
-    let sin_cos_table = sin_cos_table_fn(4);
-    let l = vec![1];
-    let ex4 = CyclotomicIntegerExponents{ exponents: &l,
-                                          level: 4,
-                                          sin_cos_table: &sin_cos_table
-    };
-    assert_eq!(ex4.house_squared(), 1 as f64);
+        // Test 1
+        // Randomly taken from SageMath
+        let sin_cos_table = sin_cos_table_fn(7);
+        let l = vec![0, 1, 3, 5];
+        let ex1 = CyclotomicIntegerExponents{ exponents: &l,
+                                              level: 7,
+                                              sin_cos_table: &sin_cos_table
+        };
+        let sage_res1: f64 = 5.04891733952231;
+        assert!(float_equality(ex1.house_squared(), sage_res1));
+        assert!(ex1.compare_house_squared(sage_res1+0.000001));
+        assert!(!ex1.compare_house_squared(5 as f64));
 
-    // Test 5
-    // 1+i (imaginary unit)
-    let sin_cos_table = sin_cos_table_fn(4);
-    let l = vec![0, 1];
-    let ex5 = CyclotomicIntegerExponents{ exponents: &l,
-                                          level: 4,
-                                          sin_cos_table: &sin_cos_table
-    };
-    assert_eq!(ex5.house_squared(), 2 as f64);
+        // Test 2
+        // Taken from table 1 of Kiran's notes
+        let sin_cos_table = sin_cos_table_fn(31);
+        let l = vec![0, 1, 3, 8, 12, 18];
+        let ex2 = CyclotomicIntegerExponents{ exponents: &l,
+                                              level: 31,
+                                              sin_cos_table: &sin_cos_table
+        };
+        assert!(float_equality(ex2.house_squared(), 5 as f64));
+        assert!(ex2.compare_house_squared(5.000001 as f64));
+
+        // Test 3
+        // Taken from table 1 of Kiran's notes
+        let sin_cos_table = sin_cos_table_fn(70);
+        let l = vec![0, 1, 11, 42, 51];
+        let ex3 = CyclotomicIntegerExponents{ exponents: &l,
+                                              level: 70,
+                                              sin_cos_table: &sin_cos_table
+        };
+        assert!(float_equality(ex3.house_squared(), 3 as f64));
+        assert!(ex3.compare_house_squared(3.000001 as f64));
+        assert!(!ex3.compare_house_squared(2.999999 as f64));
+
+        // Test 4
+        // i (imaginary unit)
+        let sin_cos_table = sin_cos_table_fn(4);
+        let l = vec![1];
+        let ex4 = CyclotomicIntegerExponents{ exponents: &l,
+                                              level: 4,
+                                              sin_cos_table: &sin_cos_table
+        };
+        assert_eq!(ex4.house_squared(), 1 as f64);
+
+        // Test 5
+        // 1+i (imaginary unit)
+        let sin_cos_table = sin_cos_table_fn(4);
+        let l = vec![0, 1];
+        let ex5 = CyclotomicIntegerExponents{ exponents: &l,
+                                              level: 4,
+                                              sin_cos_table: &sin_cos_table
+        };
+        assert_eq!(ex5.house_squared(), 2 as f64);
+    }
 }
-
