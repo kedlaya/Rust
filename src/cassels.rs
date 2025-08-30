@@ -9,6 +9,108 @@ use itertools::Itertools;
 
 use super::cyclotomic::{sin_cos_table, CyclotomicIntegerExponents, test_cyclotomic_integer_exponents};
 
+fn skip_cyclotomic_integer(cyclotomic_integer: &CyclotomicIntegerExponents,
+                           n_values: (u32, u32, u32, u32, u32)) -> bool {
+
+    // We mostly work directly on these quantities:
+    let l = &cyclotomic_integer.exponents;
+    let len = l.len();
+    let (n, n2, n3, n5, n7) = n_values;
+
+    // Remove some cases made redundant by complex conjugation.
+    if l[2] + l[len-1] > n + l[1] {
+        return false;
+    }
+
+    // Skip cases where two roots of unity differ by a factor of -1.
+    for a in 0..len {
+        for b in 0..a {
+            if l[a] == l[b] + n2 {
+                return false;
+            }
+        }
+    }
+
+    // Skip cases where two roots of unity differ by a factor of zeta_3.
+    if n3 != 0 {
+        for a in 0..len {
+            for b in 0..a {
+                if    l[a] == l[b] + n3
+                   || l[a] == l[b] + 2*n3 {
+                    return false;
+                }
+            }
+        }
+    }
+
+    // Skip cases where three roots of unity differ by factors of zeta_5.
+    if n5 != 0 {
+        for a in 0..len {
+            for b in 0..a {
+                if     l[a] > l[b]
+                    && (l[a]-l[b]) % n5 == 0 {
+                    for c in 0..b {
+                        if    l[b] > l[c]
+                           && (l[b]-l[c]) % n5 == 0 {
+                            return false;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Filter for house squared <= 5.1.
+    if !cyclotomic_integer.compare_house_squared(5.1 as f64) {
+       return false;
+    }
+    
+    // Skip cases visibly of form (2) of Cassels's theorem.
+    if len == 3 {
+        if    l[2] == n/2 - l[1]
+           || l[2] == n/2 + 2*l[1]
+           || (2*l[2]) % n == n/2 + l[1] {
+            return false;
+        }
+    }
+    
+    // Skip cases visibly of form (3) of Cassels's theorem.
+    if     n5 != 0
+        && len == 4 {
+        for (i, i1, i2) in [(1,2,3), (2,1,3), (3,1,2)] {
+            if    (l[i] - l[0]) % n5 == 0
+               && (l[i2] - l[i1]) % n5 == 0
+               && l[i] - l[0] != l[i2] - l[i1]
+               && l[1] - l[0] + l[i2] - l[i1] != n {
+                return false;
+            }
+        }
+    }
+
+    // Skip cases where four roots of unity differ by factors of zeta_7.
+    if n7 != 0 {
+        for a in 0..len {
+            for b in 0..a {
+                if    l[a] > l[b]
+                   && (l[a]-l[b]) % n7 == 0 {
+                    for c in 0..b {
+                        if     l[b] > l[c]
+                            && (l[b]-l[c]) % n7 == 0 {
+                            for d in 0..c {
+                                if    l[c] > l[d]
+                                   && (l[c]-l[d]) % n7 == 0 {
+                                    return false;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return false;
+}
+
 pub fn loop_over_roots(n0: u32, max_len: usize, mut file_tables: &File, mut file_output: &File) {
     let n  = if n0%2 == 0 {n0} else {2*n0};
     let n2 = n/2;
@@ -38,124 +140,28 @@ pub fn loop_over_roots(n0: u32, max_len: usize, mut file_tables: &File, mut file
             // The point is that this points to the *same* underlying memory.
             let sin_cos_table_local = Arc::clone(&sin_cos_table_arc);
             thread::spawn(move || {
-
-                for len in (3..=max_len) {
-                    'skipping_cases:
+                for len in 3..=max_len {
                     for iter in (j3..n).filter(|x| (j2 == 1) || euclid_u32(*x, n) >= j2)
                                        .combinations_with_replacement(len-3) {
-
-                        let l: Vec<u32> = vec![0, j2, j3].into_iter().chain(iter).collect();
-
-                        // Remove some cases made redundant by complex conjugation.
-                        if l[2] + l[len-1] > n + l[1] {
-                            continue 'skipping_cases;
+                        let exponents: Vec<u32> = vec![0, j2, j3].into_iter().chain(iter).collect();
+                        let cyclotomic_integer = CyclotomicIntegerExponents{ exponents: &exponents,
+                                                                             level: n,
+                                                                             sin_cos_table: &sin_cos_table_local};
+                        // Record this case in case it has not been filtered
+                        if !skip_cyclotomic_integer(&cyclotomic_integer, (n, n2, n3, n5, n7)) {
+                            tx_clone.send(exponents.clone()).unwrap();
                         }
-
-                        // Skip cases where two roots of unity differ by a factor of -1.
-                        for a in 0..len {
-                            for b in 0..a {
-                                if l[a] == l[b] + n2 {
-                                    continue 'skipping_cases;
-                                }
-                            }
-                        }
-
-                        // Skip cases where two roots of unity differ by a factor of zeta_3.
-                        if n3 != 0 {
-                            for a in 0..len {
-                                for b in 0..a {
-                                    if    l[a] == l[b] + n3
-                                       || l[a] == l[b] + 2*n3 {
-                                        continue 'skipping_cases;
-                                    }
-                                }
-                            }
-                        }
-
-                        // Skip cases where three roots of unity differ by factors of zeta_5.
-                        if n5 != 0 {
-                            for a in 0..len {
-                                for b in 0..a {
-                                    if     l[a] > l[b]
-                                        && (l[a]-l[b]) % n5 == 0 {
-                                        for c in 0..b {
-                                            if    l[b] > l[c]
-                                               && (l[b]-l[c]) % n5 == 0 {
-                                                continue 'skipping_cases;
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-
-                        // Filter for house squared <= 5.1.
-                        let ex = CyclotomicIntegerExponents{ exponents: &l,
-                                                             level: n,
-                                                             sin_cos_table: &sin_cos_table_local};
-                        if !ex.compare_house_squared(5.1 as f64) {
-                           continue 'skipping_cases;
-                        }
-                        
-                        // Skip cases visibly of form (2) of Cassels's theorem.
-                        if len == 3 {
-                            if    l[2] == n/2 - l[1]
-                               || l[2] == n/2 + 2*l[1]
-                               || (2*l[2]) % n == n/2 + l[1] {
-                                continue 'skipping_cases;
-                            }
-                        }
-                        
-                        // Skip cases visibly of form (3) of Cassels's theorem.
-                        if     n5 != 0
-                            && len == 4 {
-                            for (i, i1, i2) in [(1,2,3), (2,1,3), (3,1,2)] {
-                                if    (l[i] - l[0]) % n5 == 0
-                                   && (l[i2] - l[i1]) % n5 == 0
-                                   && l[i] - l[0] != l[i2] - l[i1]
-                                   && l[1] - l[0] + l[i2] - l[i1] != n {
-                                    continue 'skipping_cases;
-                                }
-                            }
-                        }
-
-                        // Skip cases where four roots of unity differ by factors of zeta_7.
-                        if n7 != 0 {
-                            for a in 0..len {
-                                for b in 0..a {
-                                    if    l[a] > l[b]
-                                       && (l[a]-l[b]) % n7 == 0 {
-                                        for c in 0..b {
-                                            if     l[b] > l[c]
-                                                && (l[b]-l[c]) % n7 == 0 {
-                                                for d in 0..c {
-                                                    if    l[c] > l[d]
-                                                       && (l[c]-l[d]) % n7 == 0 {
-                                                        continue 'skipping_cases;
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-
-                        // Record this case
-                        tx_clone.send(l.clone()).unwrap();
-
                     }
                 }
-
                 println!("Checked cases with n = {}, j_2 = {}, j_3 = {}", n, j2, j3);
               });
           }
 
          // Record the level and exponents from all spawned threads
          drop(tx);
-         for l in rx {
-             println!("{:?}", l);
-             write!(file_output, "{}; {:?}\n", n, l).expect("output failure");
+         for exponents in rx {
+             println!("{:?}", exponents);
+             write!(file_output, "{}; {:?}\n", n, exponents).expect("output failure");
          }
     }
 
