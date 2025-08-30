@@ -7,7 +7,7 @@ use std::thread;
 use gcd::euclid_u32;
 use itertools::Itertools;
 
-use super::cyclotomic::{sin_cos_table, CyclotomicIntegerExponents, test_cyclotomic_integer_exponents};
+use super::cyclotomic::{sin_cos_table, CyclotomicIntegerExponents};
 
 pub fn loop_over_roots(n0: u32, max_len: usize, mut file_tables: &File, mut file_output: &File) {
     let n  = if n0%2 == 0 {n0} else {2*n0};

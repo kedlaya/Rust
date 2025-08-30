@@ -2,15 +2,10 @@ mod cyclotomic;
 mod cassels;
 
 use cassels::loop_over_roots;
-use cyclotomic::test_cyclotomic_integer_exponents;
 
 use std::fs::File;
 
 fn main() -> std::io::Result<()> {
-    // This should be handled somewhere else:
-    test_cyclotomic_integer_exponents();
-    println!("All tests passed!");
-
     let file_tables = File::create("tables.txt")?;
     let file_output = File::create("output.txt")?;
     let inputs = [(19,              9),
