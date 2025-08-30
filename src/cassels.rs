@@ -9,7 +9,7 @@ use itertools::Itertools;
 
 use super::cyclotomic::{sin_cos_table, CyclotomicIntegerExponents, test_cyclotomic_integer_exponents};
 
-pub fn loop_over_roots(n0: u32, len: usize, mut file_tables: &File, mut file_output: &File) {
+pub fn loop_over_roots(n0: u32, max_len: usize, mut file_tables: &File, mut file_output: &File) {
     let n  = if n0%2 == 0 {n0} else {2*n0};
     let n2 = n/2;
     let n3 = if n%3 == 0 {n/3} else {0};
@@ -38,39 +38,31 @@ pub fn loop_over_roots(n0: u32, len: usize, mut file_tables: &File, mut file_out
             // The point is that this points to the *same* underlying memory.
             let sin_cos_table_local = Arc::clone(&sin_cos_table_arc);
             thread::spawn(move || {
-                let mut l: Vec<u32> = vec![0; len];
-                l[0] = 0;
-                l[1] = j2;
-                l[2] = j3;
 
-                let iter = (j3..=n).filter(|x| (j2 == 1) || euclid_u32(*x, n) >= j2);
-                'skipping_cases: for it in iter.combinations_with_replacement(len-3) {
+                for len in (3..=max_len) {
+                    'skipping_cases:
+                    for iter in (j3..n).filter(|x| (j2 == 1) || euclid_u32(*x, n) >= j2)
+                                       .combinations_with_replacement(len-3) {
 
-                    for i in 3..len {
-                        l[i] = it[i-3];
-                    }
+                        let l: Vec<u32> = vec![0, j2, j3].into_iter().chain(iter).collect();
 
-                    // Remove some cases made redundant by complex conjugation.
-                    if    l[len-1] < n
-                       && l[2] + l[len-1] > n + l[1] {
-                        continue 'skipping_cases;
-                    }
+                        // Remove some cases made redundant by complex conjugation.
+                        if l[2] + l[len-1] > n + l[1] {
+                            continue 'skipping_cases;
+                        }
 
-                    // Skip cases where two roots of unity differ by a factor of -1.
-                    for a in 0..len {
-                        if l[a] < n {
+                        // Skip cases where two roots of unity differ by a factor of -1.
+                        for a in 0..len {
                             for b in 0..a {
                                 if l[a] == l[b] + n2 {
                                     continue 'skipping_cases;
                                 }
                             }
                         }
-                    }
 
-                    // Skip cases where two roots of unity differ by a factor of zeta_3.
-                    if n3 != 0 {
-                        for a in 0..len {
-                            if l[a] < n {
+                        // Skip cases where two roots of unity differ by a factor of zeta_3.
+                        if n3 != 0 {
+                            for a in 0..len {
                                 for b in 0..a {
                                     if    l[a] == l[b] + n3
                                        || l[a] == l[b] + 2*n3 {
@@ -79,12 +71,10 @@ pub fn loop_over_roots(n0: u32, len: usize, mut file_tables: &File, mut file_out
                                 }
                             }
                         }
-                    }
 
-                    // Skip cases where three roots of unity differ by factors of zeta_5.
-                    if n5 != 0 {
-                        for a in 0..len {
-                            if l[a] < n {
+                        // Skip cases where three roots of unity differ by factors of zeta_5.
+                        if n5 != 0 {
+                            for a in 0..len {
                                 for b in 0..a {
                                     if     l[a] > l[b]
                                         && (l[a]-l[b]) % n5 == 0 {
@@ -98,43 +88,40 @@ pub fn loop_over_roots(n0: u32, len: usize, mut file_tables: &File, mut file_out
                                 }
                             }
                         }
-                    }
 
-                    // Filter for house squared <= 5.1.
-                    let ex = CyclotomicIntegerExponents{ exponents: &l,
-                                                         level: n,
-                                                         sin_cos_table: &sin_cos_table_local};
-                    if !ex.compare_house_squared(5.1 as f64) {
-                       continue 'skipping_cases;
-                    }
-                    
-                    // Skip cases visibly of form (2) of Cassels's theorem.
-                    if l[3] == n {
-                        if    l[2] == n/2 - l[1]
-                           || l[2] == n/2 + 2*l[1]
-                           || (2*l[2]) % n == n/2 + l[1] {
-                            continue 'skipping_cases;
+                        // Filter for house squared <= 5.1.
+                        let ex = CyclotomicIntegerExponents{ exponents: &l,
+                                                             level: n,
+                                                             sin_cos_table: &sin_cos_table_local};
+                        if !ex.compare_house_squared(5.1 as f64) {
+                           continue 'skipping_cases;
                         }
-                    }
-                    
-                    // Skip cases visibly of form (3) of Cassels's theorem.
-                    if     n5 != 0
-                        && l[3] != n
-                        && ((len == 4) || (l[4] == n)) {
-                        for (i, i1, i2) in [(1,2,3), (2,1,3), (3,1,2)] {
-                            if    (l[i] - l[0]) % n5 == 0
-                               && (l[i2] - l[i1]) % n5 == 0
-                               && l[i] - l[0] != l[i2] - l[i1]
-                               && l[1] - l[0] + l[i2] - l[i1] != n {
+                        
+                        // Skip cases visibly of form (2) of Cassels's theorem.
+                        if len == 3 {
+                            if    l[2] == n/2 - l[1]
+                               || l[2] == n/2 + 2*l[1]
+                               || (2*l[2]) % n == n/2 + l[1] {
                                 continue 'skipping_cases;
                             }
                         }
-                    }
+                        
+                        // Skip cases visibly of form (3) of Cassels's theorem.
+                        if     n5 != 0
+                            && len == 4 {
+                            for (i, i1, i2) in [(1,2,3), (2,1,3), (3,1,2)] {
+                                if    (l[i] - l[0]) % n5 == 0
+                                   && (l[i2] - l[i1]) % n5 == 0
+                                   && l[i] - l[0] != l[i2] - l[i1]
+                                   && l[1] - l[0] + l[i2] - l[i1] != n {
+                                    continue 'skipping_cases;
+                                }
+                            }
+                        }
 
-                    // Skip cases where four roots of unity differ by factors of zeta_7.
-                    if n7 != 0 {
-                        for a in 0..len {
-                            if l[a] < n {
+                        // Skip cases where four roots of unity differ by factors of zeta_7.
+                        if n7 != 0 {
+                            for a in 0..len {
                                 for b in 0..a {
                                     if    l[a] > l[b]
                                        && (l[a]-l[b]) % n7 == 0 {
@@ -153,11 +140,13 @@ pub fn loop_over_roots(n0: u32, len: usize, mut file_tables: &File, mut file_out
                                 }
                             }
                         }
-                    }
 
-                    // Record this case
-                    tx_clone.send(l.clone()).unwrap();
+                        // Record this case
+                        tx_clone.send(l.clone()).unwrap();
+
+                    }
                 }
+
                 println!("Checked cases with n = {}, j_2 = {}, j_3 = {}", n, j2, j3);
               });
           }
