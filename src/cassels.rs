@@ -61,17 +61,16 @@ fn skip_cyclotomic_integer(cyclotomic_integer: &CyclotomicIntegerExponents,
     }
 
     // Filter for house squared <= 5.1.
-    if !cyclotomic_integer.compare_house_squared(5.1 as f64) {
+    if !cyclotomic_integer.compare_house_squared(5.1_f64) {
        return true;
     }
     
     // Skip cases visibly of form (2) of Cassels's theorem.
-    if len == 3 {
-        if    l[2] == n/2 - l[1]
-           || l[2] == n/2 + 2*l[1]
-           || (2*l[2]) % n == n/2 + l[1] {
-            return true;
-        }
+    if    len == 3 
+       && (l[2] == n/2 - l[1]
+       || l[2] == n/2 + 2*l[1]
+       || (2*l[2]) % n == n/2 + l[1]) {
+       return true;
     }
     
     // Skip cases visibly of form (3) of Cassels's theorem.
@@ -124,7 +123,7 @@ pub fn loop_over_roots(n0: u32, max_len: usize, mut file_tables: &File, mut file
         let (sin, cos) = sin_cos_table[j as usize];
         // TODO: Would be better to output sin, cos, in that order.
         //       But one has to be very careful.
-        write!(file_tables, "{} {} {} {}\n", n, j, cos, sin).expect("output failure");
+        writeln!(file_tables, "{} {} {} {}", n, j, cos, sin).expect("output failure");
     }
     let sin_cos_table_arc = Arc::new(sin_cos_table);
 
@@ -160,7 +159,7 @@ pub fn loop_over_roots(n0: u32, max_len: usize, mut file_tables: &File, mut file
          drop(tx);
          for exponents in rx {
              println!("{:?}", exponents);
-             write!(file_output, "{}; {:?}\n", n, exponents).expect("output failure");
+             writeln!(file_output, "{}; {:?}", n, exponents).expect("output failure");
          }
     }
 

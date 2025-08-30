@@ -55,7 +55,7 @@ impl CyclotomicIntegerExponents<'_> {
         // something along the lines of Option(f64). Same for the next
         // method.
 
-        let mut max_abs_squared = 0 as f64;
+        let mut max_abs_squared = 0_f64;
         for abs_squared in self.conjugates_abs_squared() {
             if abs_squared > max_abs_squared {
                 max_abs_squared = abs_squared;
@@ -73,11 +73,6 @@ impl CyclotomicIntegerExponents<'_> {
     }
 }
 
-fn float_equality(x: f64, y: f64) -> bool {
-    // WARNING: At some point, we probably want that in another file.
-    (x - y).abs() < (0.000001 as f64)
-}
-
 // For idiomatic doctesting, see
 // https://doc.rust-lang.org/rust-by-example/testing/unit_testing.html
 // Basically, add tests in the module below, prefix with #[test],
@@ -87,6 +82,10 @@ fn float_equality(x: f64, y: f64) -> bool {
 mod tests {
 
     use super::*;
+
+    fn float_equality(x: f64, y: f64) -> bool {
+        (x - y).abs() < (0.000001_f64)
+    }
 
     #[test]
     fn test_castle() {
