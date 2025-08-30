@@ -13,13 +13,13 @@ pub fn sin_cos_table(n: u32) -> Vec<(f64, f64)> {
         .collect::<Vec<(f64, f64)>>()
 }
 
-pub struct CyclotomicIntegerExponents<'a> {
+pub struct CyclotomicInteger<'a> {
     pub exponents: &'a Vec<u32>,
     pub level: u32,
     pub sin_cos_table: &'a Vec<(f64, f64)>,
 }
 
-impl CyclotomicIntegerExponents<'_> {
+impl CyclotomicInteger<'_> {
 
     /// Iterate through the squares of the modules of the conjugates
     /// of self. We use `abs` to stick the SageMath convention.
@@ -89,7 +89,7 @@ mod tests {
 
     #[test]
     fn test_castle() {
-        // Tests for CyclotomicIntegerExponents
+        // Tests for CyclotomicInteger
 
         // This is necessary as otherwise there is a conflict between the variable sin_cos_table,
         // and the function. This is called shadowing, see `rustc --explain E0618`.
@@ -99,7 +99,7 @@ mod tests {
         // Randomly taken from SageMath
         let sin_cos_table = sin_cos_table_fn(7);
         let l = vec![0, 1, 3, 5];
-        let ex1 = CyclotomicIntegerExponents{ exponents: &l,
+        let ex1 = CyclotomicInteger{ exponents: &l,
                                               level: 7,
                                               sin_cos_table: &sin_cos_table
         };
@@ -112,7 +112,7 @@ mod tests {
         // Taken from table 1 of Kiran's notes
         let sin_cos_table = sin_cos_table_fn(31);
         let l = vec![0, 1, 3, 8, 12, 18];
-        let ex2 = CyclotomicIntegerExponents{ exponents: &l,
+        let ex2 = CyclotomicInteger{ exponents: &l,
                                               level: 31,
                                               sin_cos_table: &sin_cos_table
         };
@@ -123,7 +123,7 @@ mod tests {
         // Taken from table 1 of Kiran's notes
         let sin_cos_table = sin_cos_table_fn(70);
         let l = vec![0, 1, 11, 42, 51];
-        let ex3 = CyclotomicIntegerExponents{ exponents: &l,
+        let ex3 = CyclotomicInteger{ exponents: &l,
                                               level: 70,
                                               sin_cos_table: &sin_cos_table
         };
@@ -135,7 +135,7 @@ mod tests {
         // i (imaginary unit)
         let sin_cos_table = sin_cos_table_fn(4);
         let l = vec![1];
-        let ex4 = CyclotomicIntegerExponents{ exponents: &l,
+        let ex4 = CyclotomicInteger{ exponents: &l,
                                               level: 4,
                                               sin_cos_table: &sin_cos_table
         };
@@ -145,7 +145,7 @@ mod tests {
         // 1+i (imaginary unit)
         let sin_cos_table = sin_cos_table_fn(4);
         let l = vec![0, 1];
-        let ex5 = CyclotomicIntegerExponents{ exponents: &l,
+        let ex5 = CyclotomicInteger{ exponents: &l,
                                               level: 4,
                                               sin_cos_table: &sin_cos_table
         };

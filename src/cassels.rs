@@ -7,9 +7,9 @@ use std::thread;
 use gcd::euclid_u32;
 use itertools::Itertools;
 
-use super::cyclotomic::{sin_cos_table, CyclotomicIntegerExponents};
+use super::cyclotomic::{sin_cos_table, CyclotomicInteger};
 
-fn skip_cyclotomic_integer(cyclotomic_integer: &CyclotomicIntegerExponents,
+fn skip_cyclotomic_integer(cyclotomic_integer: &CyclotomicInteger,
                            n_values: (u32, u32, u32, u32, u32)) -> bool {
 
     // We mostly work directly on these quantities:
@@ -142,9 +142,9 @@ pub fn loop_over_roots(n0: u32, max_len: usize, mut file_tables: &File, mut file
                     for iter in (j3..n).filter(|x| (j2 == 1) || euclid_u32(*x, n) >= j2)
                                        .combinations_with_replacement(len-3) {
                         let exponents: Vec<u32> = vec![0, j2, j3].into_iter().chain(iter).collect();
-                        let cyclotomic_integer = CyclotomicIntegerExponents{ exponents: &exponents,
-                                                                             level: n,
-                                                                             sin_cos_table: &sin_cos_table_local};
+                        let cyclotomic_integer = CyclotomicInteger{ exponents: &exponents,
+                                                                    level: n,
+                                                                    sin_cos_table: &sin_cos_table_local};
                         // Record this case in case it has not been filtered
                         if !skip_cyclotomic_integer(&cyclotomic_integer, (n, n2, n3, n5, n7)) {
                             tx_clone.send(exponents.clone()).unwrap();
