@@ -41,13 +41,11 @@ impl CyclotomicIntegerExponents<'_> {
                 let mut cos_sum: f64 = 0.0;
                 let mut sin_sum: f64 = 0.0;
                 for j in self.exponents {
-                    if *j < self.level {
-                        let i = (k*j % self.level) as usize;
-                        // If only we could sum tuples directly...
-                        let (sin, cos) = self.sin_cos_table[i];
-                        cos_sum += cos;
-                        sin_sum += sin;
-                    }
+                    let i = (k*j % self.level) as usize;
+                    // If only we could sum tuples directly...
+                    let (sin, cos) = self.sin_cos_table[i];
+                    cos_sum += cos;
+                    sin_sum += sin;
                 }
 
                 // Yield the square of the modulus
