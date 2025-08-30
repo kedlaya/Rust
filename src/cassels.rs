@@ -7,7 +7,7 @@ use std::thread;
 use gcd::euclid_u32;
 use itertools::Itertools;
 
-use super::cyclotomic::{sin_cos_table, CyclotomicIntegerExponents, test_cyclotomic_integer_exponents};
+use super::cyclotomic::{sin_cos_table, CyclotomicIntegerExponents};
 
 fn skip_cyclotomic_integer(cyclotomic_integer: &CyclotomicIntegerExponents,
                            n_values: (u32, u32, u32, u32, u32)) -> bool {
