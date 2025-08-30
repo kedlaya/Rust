@@ -108,8 +108,7 @@ pub fn loop_over_roots(n0: u32, max_len: usize, mut file_tables: &File, mut file
                         
                         // Skip cases visibly of form (3) of Cassels's theorem.
                         if     n5 != 0
-                            && len != 3
-                            && ((len == 4) || (l[4] == n)) {
+                            && len == 4 {
                             for (i, i1, i2) in [(1,2,3), (2,1,3), (3,1,2)] {
                                 if    (l[i] - l[0]) % n5 == 0
                                    && (l[i2] - l[i1]) % n5 == 0
