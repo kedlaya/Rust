@@ -21,9 +21,9 @@ pub struct CyclotomicIntegerExponents<'a> {
 
 impl CyclotomicIntegerExponents<'_> {
 
+    /// Iterate through the squares of the modules of the conjugates
+    /// of self. We use `abs` to stick the SageMath convention.
     fn conjugates_abs_squared(&self) -> impl Iterator<Item = f64> {
-        /// Iterate through the squares of the modules of the conjugates
-        /// of self. We use `abs` to stick the SageMath convention.
 
         // Iterate through the conjugates
         (1..self.level)
@@ -32,8 +32,8 @@ impl CyclotomicIntegerExponents<'_> {
             // Second, compute the square of the modulus for this Galois
             // automorphism:
             .map(|k| {
-                let mut sin_sum: f64 = 0.0;
-                let mut cos_sum: f64 = 0.0;
+                let mut sin_sum = 0_f64;
+                let mut cos_sum = 0_f64;
                 for j in self.exponents {
                     let i = (k*j % self.level) as usize;
                     // If only we could sum tuples directly...
@@ -47,8 +47,8 @@ impl CyclotomicIntegerExponents<'_> {
             })
     }
 
+    /// Return the square of the house of the input.
     pub fn house_squared(&self) -> f64 {
-        /// Return the square of the house of the input.
 
         // TODO: It would be more idiomatic to check for emptyness of the
         // iterator rather than return 0. The return type would probably be
@@ -64,10 +64,10 @@ impl CyclotomicIntegerExponents<'_> {
         max_abs_squared
     }
 
+    /// Check whether square of the house of the input is bounded
+    /// above by the cutoff. This is more efficient than computing
+    /// the house first.
     pub fn compare_house_squared(&self, cutoff: f64) -> bool {
-        /// Check whether square of the house of the input is bounded
-        /// above by the cutoff. This is more efficient than computing
-        /// the house first.
 
         !self.conjugates_abs_squared().any(|x| x >= cutoff)
     }
@@ -103,10 +103,10 @@ mod tests {
                                               level: 7,
                                               sin_cos_table: &sin_cos_table
         };
-        let sage_res1: f64 = 5.04891733952231;
+        let sage_res1 = 5.04891733952231_f64;
         assert!(float_equality(ex1.house_squared(), sage_res1));
         assert!(ex1.compare_house_squared(sage_res1+0.000001));
-        assert!(!ex1.compare_house_squared(5 as f64));
+        assert!(!ex1.compare_house_squared(5_f64));
 
         // Test 2
         // Taken from table 1 of Kiran's notes
@@ -116,8 +116,8 @@ mod tests {
                                               level: 31,
                                               sin_cos_table: &sin_cos_table
         };
-        assert!(float_equality(ex2.house_squared(), 5 as f64));
-        assert!(ex2.compare_house_squared(5.000001 as f64));
+        assert!(float_equality(ex2.house_squared(), 5_f64));
+        assert!(ex2.compare_house_squared(5.000001_f64));
 
         // Test 3
         // Taken from table 1 of Kiran's notes
@@ -127,9 +127,9 @@ mod tests {
                                               level: 70,
                                               sin_cos_table: &sin_cos_table
         };
-        assert!(float_equality(ex3.house_squared(), 3 as f64));
-        assert!(ex3.compare_house_squared(3.000001 as f64));
-        assert!(!ex3.compare_house_squared(2.999999 as f64));
+        assert!(float_equality(ex3.house_squared(), 3_f64));
+        assert!(ex3.compare_house_squared(3.000001_f64));
+        assert!(!ex3.compare_house_squared(2.999999_f64));
 
         // Test 4
         // i (imaginary unit)
@@ -139,7 +139,7 @@ mod tests {
                                               level: 4,
                                               sin_cos_table: &sin_cos_table
         };
-        assert_eq!(ex4.house_squared(), 1 as f64);
+        assert_eq!(ex4.house_squared(), 1_f64);
 
         // Test 5
         // 1+i (imaginary unit)
@@ -149,6 +149,6 @@ mod tests {
                                               level: 4,
                                               sin_cos_table: &sin_cos_table
         };
-        assert_eq!(ex5.house_squared(), 2 as f64);
+        assert_eq!(ex5.house_squared(), 2_f64);
     }
 }
