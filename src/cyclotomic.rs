@@ -5,7 +5,12 @@ use std::f64::consts::TAU;
 
 pub fn sin_cos_table(n: u32) -> Vec<(f64, f64)> {
     let angle0 = TAU / (n as f64);
-    (0..n).map(|j| (angle0 * (j as f64)).sin_cos()).collect::<Vec<(f64, f64)>>()
+    // Iterate over j
+    (0..n)
+        // compute sin and cosine of 2*pi*j/n
+        .map(|j| (angle0 * (j as f64)).sin_cos())
+        // collect and return a vector
+        .collect::<Vec<(f64, f64)>>()
 }
 
 pub struct CyclotomicIntegerExponents<'a> {
@@ -20,34 +25,26 @@ impl CyclotomicIntegerExponents<'_> {
         /// Iterate through the squares of the modules of the conjugates
         /// of self. We use `abs` to stick the SageMath convention.
 
-        // Here is an attempt at creating an iterator. Unfortunately,
-        // it's more complicated than simply using `yield` as in Python.
-
         // Iterate through the conjugates
         (1..self.level)
             // First, get the right Galois group automorphisms:
-            .filter(move |k| euclid_u32(*k, self.level) == 1)
+            .filter(|k| euclid_u32(*k, self.level) == 1)
             // Second, compute the square of the modulus for this Galois
             // automorphism:
-            .map(move |k| {
-                let mut cos_sum: f64 = 0.0;
+            .map(|k| {
                 let mut sin_sum: f64 = 0.0;
+                let mut cos_sum: f64 = 0.0;
                 for j in self.exponents {
                     let i = (k*j % self.level) as usize;
                     // If only we could sum tuples directly...
                     let (sin, cos) = self.sin_cos_table[i];
-                    cos_sum += cos;
                     sin_sum += sin;
+                    cos_sum += cos;
                 }
 
                 // Yield the square of the modulus
-                cos_sum.powi(2) + sin_sum.powi(2)
+                sin_sum.powi(2) + cos_sum.powi(2)
             })
-        // From my very limited understanding, the `move` keyword is
-        // used to transfer ownership of any variable appearing in the
-        // closure definition, to the closure itself. In our case:
-        // self.level in the first closure, and &self.exponents and
-        // self.level.
     }
 
     pub fn house_squared(&self) -> f64 {
