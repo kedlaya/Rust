@@ -143,8 +143,8 @@ pub fn loop_over_roots(n0: u32, max_len: usize, mut file_tables: &File, mut file
                     let mut exponents: Vec<u32> = vec![0; len];
                     for iter in (j3..n).filter(|x| (j2 == 1) || euclid_u32(*x, n) >= j2)
                                        .combinations_with_replacement(len-3) {
-                        let mut iteriter = vec![0, j2, j3].into_iter().chain(iter);
-                        exponents.iter_mut().for_each(|x| *x = iteriter.next().unwrap());
+                        let mut full_iter = vec![0, j2, j3].into_iter().chain(iter);
+                        exponents.iter_mut().for_each(|x| *x = full_iter.next().unwrap());
                         let cyclotomic_integer = CyclotomicInteger{ exponents: &exponents,
                                                                     level: n,
                                                                     sin_cos_table: &sin_cos_table_local};
