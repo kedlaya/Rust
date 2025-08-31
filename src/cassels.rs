@@ -129,8 +129,9 @@ pub fn loop_over_roots(n0: u32, max_len: usize, mut file_tables: &File, mut file
 
     // Loop over proper divisors j_2 of n.
     for j2 in (1..n).filter(|x| n % x == 0) {
-        // Loop over tuples [j_3, ..., j_*] with 0 <= j_3 <= ... <= j_* < n,
+        // Loop over tuples [j_3, ..., j_*] with 0 <= j_3 <= ... <= j_len < n,
         // also requiring that gcd(j_i, n) >= j_2.
+        // The variable len is defined thereafter, and is less or equal to max_len.
         let (tx, rx) = mpsc::channel();
         for j3 in (0..n).filter(|x| euclid_u32(*x, n) >= j2) {
             let tx_clone = tx.clone();
