@@ -4,74 +4,58 @@ use gcd::euclid_u32;  // I'm sad this is not in the standard library
 use std::f64::consts::TAU;
 
 pub fn sin_cos_table(n: u32) -> Vec<(f64, f64)> {
-
-    // TODO: We probably don't need the tmp anymore.
-    let mut sin_cos_table_tmp: Vec<(f64, f64)> = Vec::new();
     let angle0 = TAU / (n as f64);
-
-    for j in 0..n {
-        let sin_cos = (angle0 * (j as f64)).sin_cos();
-        sin_cos_table_tmp.push(sin_cos);
-    }
-    // Make immutable copies
-    let sin_cos_table: Vec<(f64, f64)> = sin_cos_table_tmp.clone();
-
-    sin_cos_table
+    // Iterate over j
+    (0..n)
+        // compute sin and cosine of 2*pi*j/n
+        .map(|j| (angle0 * (j as f64)).sin_cos())
+        // collect and return a vector
+        .collect::<Vec<(f64, f64)>>()
 }
 
-pub struct CyclotomicIntegerExponents<'a> {
+pub struct CyclotomicInteger<'a> {
     pub exponents: &'a Vec<u32>,
     pub level: u32,
     pub sin_cos_table: &'a Vec<(f64, f64)>,
 }
 
-impl CyclotomicIntegerExponents<'_> {
+impl CyclotomicInteger<'_> {
 
+    /// Iterate through the squares of the modules of the conjugates
+    /// of self. We use `abs` to stick the SageMath convention.
     fn conjugates_abs_squared(&self) -> impl Iterator<Item = f64> {
-        /// Iterate through the squares of the modules of the conjugates
-        /// of self. We use `abs` to stick the SageMath convention.
-
-        // Here is an attempt at creating an iterator. Unfortunately,
-        // it's more complicated than simply using `yield` as in Python.
 
         // Iterate through the conjugates
         (1..self.level)
             // First, get the right Galois group automorphisms:
-            .filter(move |k| euclid_u32(*k, self.level) == 1)
+            .filter(|k| euclid_u32(*k, self.level) == 1)
             // Second, compute the square of the modulus for this Galois
             // automorphism:
-            .map(move |k| {
-                let mut cos_sum: f64 = 0.0;
-                let mut sin_sum: f64 = 0.0;
+            .map(|k| {
+                let mut sin_sum = 0_f64;
+                let mut cos_sum = 0_f64;
                 for j in self.exponents {
-                    if *j < self.level {
-                        let i = (k*j % self.level) as usize;
-                        // If only we could sum tuples directly...
-                        let (sin, cos) = self.sin_cos_table[i];
-                        cos_sum += cos;
-                        sin_sum += sin;
-                    }
+                    let i = (k*j % self.level) as usize;
+                    // If only we could sum tuples directly...
+                    let (sin, cos) = self.sin_cos_table[i];
+                    sin_sum += sin;
+                    cos_sum += cos;
                 }
 
                 // Yield the square of the modulus
-                cos_sum.powi(2) + sin_sum.powi(2)
+                sin_sum.powi(2) + cos_sum.powi(2)
             })
-        // From my very limited understanding, the `move` keyword is
-        // used to transfer ownership of any variable appearing in the
-        // closure definition, to the closure itself. In our case:
-        // self.level in the first closure, and &self.exponents and
-        // self.level.
     }
 
+    /// Return the square of the house of the input.
     pub fn house_squared(&self) -> f64 {
-        /// Return the square of the house of the input.
 
         // TODO: It would be more idiomatic to check for emptyness of the
         // iterator rather than return 0. The return type would probably be
         // something along the lines of Option(f64). Same for the next
         // method.
 
-        let mut max_abs_squared = 0 as f64;
+        let mut max_abs_squared = 0_f64;
         for abs_squared in self.conjugates_abs_squared() {
             if abs_squared > max_abs_squared {
                 max_abs_squared = abs_squared;
@@ -80,18 +64,13 @@ impl CyclotomicIntegerExponents<'_> {
         max_abs_squared
     }
 
+    /// Check whether square of the house of the input is bounded
+    /// above by the cutoff. This is more efficient than computing
+    /// the house first.
     pub fn compare_house_squared(&self, cutoff: f64) -> bool {
-        /// Check whether square of the house of the input is bounded
-        /// above by the cutoff. This is more efficient than computing
-        /// the house first.
 
         !self.conjugates_abs_squared().any(|x| x >= cutoff)
     }
-}
-
-fn float_equality(x: f64, y: f64) -> bool {
-    // WARNING: At some point, we probably want that in another file.
-    (x - y).abs() < (0.000001 as f64)
 }
 
 // For idiomatic doctesting, see
@@ -104,9 +83,13 @@ mod tests {
 
     use super::*;
 
+    fn float_equality(x: f64, y: f64) -> bool {
+        (x - y).abs() < (0.000001_f64)
+    }
+
     #[test]
     fn test_castle() {
-        // Tests for CyclotomicIntegerExponents
+        // Tests for CyclotomicInteger
 
         // This is necessary as otherwise there is a conflict between the variable sin_cos_table,
         // and the function. This is called shadowing, see `rustc --explain E0618`.
@@ -116,56 +99,56 @@ mod tests {
         // Randomly taken from SageMath
         let sin_cos_table = sin_cos_table_fn(7);
         let l = vec![0, 1, 3, 5];
-        let ex1 = CyclotomicIntegerExponents{ exponents: &l,
+        let ex1 = CyclotomicInteger{ exponents: &l,
                                               level: 7,
                                               sin_cos_table: &sin_cos_table
         };
-        let sage_res1: f64 = 5.04891733952231;
+        let sage_res1 = 5.04891733952231_f64;
         assert!(float_equality(ex1.house_squared(), sage_res1));
         assert!(ex1.compare_house_squared(sage_res1+0.000001));
-        assert!(!ex1.compare_house_squared(5 as f64));
+        assert!(!ex1.compare_house_squared(5_f64));
 
         // Test 2
         // Taken from table 1 of Kiran's notes
         let sin_cos_table = sin_cos_table_fn(31);
         let l = vec![0, 1, 3, 8, 12, 18];
-        let ex2 = CyclotomicIntegerExponents{ exponents: &l,
+        let ex2 = CyclotomicInteger{ exponents: &l,
                                               level: 31,
                                               sin_cos_table: &sin_cos_table
         };
-        assert!(float_equality(ex2.house_squared(), 5 as f64));
-        assert!(ex2.compare_house_squared(5.000001 as f64));
+        assert!(float_equality(ex2.house_squared(), 5_f64));
+        assert!(ex2.compare_house_squared(5.000001_f64));
 
         // Test 3
         // Taken from table 1 of Kiran's notes
         let sin_cos_table = sin_cos_table_fn(70);
         let l = vec![0, 1, 11, 42, 51];
-        let ex3 = CyclotomicIntegerExponents{ exponents: &l,
+        let ex3 = CyclotomicInteger{ exponents: &l,
                                               level: 70,
                                               sin_cos_table: &sin_cos_table
         };
-        assert!(float_equality(ex3.house_squared(), 3 as f64));
-        assert!(ex3.compare_house_squared(3.000001 as f64));
-        assert!(!ex3.compare_house_squared(2.999999 as f64));
+        assert!(float_equality(ex3.house_squared(), 3_f64));
+        assert!(ex3.compare_house_squared(3.000001_f64));
+        assert!(!ex3.compare_house_squared(2.999999_f64));
 
         // Test 4
         // i (imaginary unit)
         let sin_cos_table = sin_cos_table_fn(4);
         let l = vec![1];
-        let ex4 = CyclotomicIntegerExponents{ exponents: &l,
+        let ex4 = CyclotomicInteger{ exponents: &l,
                                               level: 4,
                                               sin_cos_table: &sin_cos_table
         };
-        assert_eq!(ex4.house_squared(), 1 as f64);
+        assert_eq!(ex4.house_squared(), 1_f64);
 
         // Test 5
         // 1+i (imaginary unit)
         let sin_cos_table = sin_cos_table_fn(4);
         let l = vec![0, 1];
-        let ex5 = CyclotomicIntegerExponents{ exponents: &l,
+        let ex5 = CyclotomicInteger{ exponents: &l,
                                               level: 4,
                                               sin_cos_table: &sin_cos_table
         };
-        assert_eq!(ex5.house_squared(), 2 as f64);
+        assert_eq!(ex5.house_squared(), 2_f64);
     }
 }
