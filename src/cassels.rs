@@ -141,7 +141,7 @@ pub fn loop_over_roots(n0: u32, max_len: usize, mut file_tables: &File, mut file
             thread::spawn(move || {
                 for len in 3..=max_len {
                     let mut exponents: Vec<u32> = vec![0; len];
-                    exponents[0..3].copy_from_slice(&vec![0, j2, j3]);
+                    exponents[0..3].copy_from_slice(&[0, j2, j3]);
                     for iter in (j3..n).filter(|x| (j2 == 1) || euclid_u32(*x, n) >= j2)
                                        .combinations_with_replacement(len-3) {
                         exponents[3..].copy_from_slice(&iter);
