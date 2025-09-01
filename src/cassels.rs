@@ -140,9 +140,11 @@ pub fn loop_over_roots(n0: u32, max_len: usize, mut file_tables: &File, mut file
             let sin_cos_table_local = Arc::clone(&sin_cos_table_arc);
             thread::spawn(move || {
                 for len in 3..=max_len {
+                    let mut exponents: Vec<u32> = vec![0; len];
+                    exponents[0..3].copy_from_slice(&[0, j2, j3]);
                     for iter in (j3..n).filter(|x| (j2 == 1) || euclid_u32(*x, n) >= j2)
                                        .combinations_with_replacement(len-3) {
-                        let exponents: Vec<u32> = vec![0, j2, j3].into_iter().chain(iter).collect();
+                        exponents[3..].copy_from_slice(&iter);
                         let cyclotomic_integer = CyclotomicInteger{ exponents: &exponents,
                                                                     level: n,
                                                                     sin_cos_table: &sin_cos_table_local};
