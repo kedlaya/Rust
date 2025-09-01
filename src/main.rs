@@ -1,11 +1,24 @@
 mod cyclotomic;
 mod cassels;
 
-use cassels::loop_over_roots;
+use cassels::{loop_over_roots, Output, sort_output_file};
 
 use std::fs::File;
+use std::io::{Write, BufReader, BufRead};
 
 fn main() -> std::io::Result<()> {
+    let file_tables = File::create("tables.txt")?;
+    let file_output = File::create("output.txt")?;
+    let inputs = [(1, 1)];
+    for (n0, len) in inputs {
+        loop_over_roots(n0, len, &file_tables, &file_output);
+    }
+
+    let output = Output::new(String::from("0; [0]")).unwrap();
+    let output2 = Output::new(String::from("0; [1]")).unwrap();
+
+    println!("{}", output < output2);
+
     let file_tables = File::create("tables.txt")?;
     let file_output = File::create("output.txt")?;
     let inputs = [(19,              9),
@@ -31,6 +44,10 @@ fn main() -> std::io::Result<()> {
     for (n0, len) in inputs {
         loop_over_roots(n0, len, &file_tables, &file_output);
     }
+
+    let file_output = File::open("output.txt")?;
+    let file_output_sorted = File::create("output.txt.sorted")?;
+    sort_output_file(&file_output, &file_output_sorted);
 
     println!("All cases checked!");
     Ok(())

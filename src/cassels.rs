@@ -1,5 +1,5 @@
 use std::fs::File;
-use std::io::Write;
+use std::io::{Write, BufReader, BufRead};
 use std::sync::mpsc;
 use std::sync::Arc;
 use std::thread;
@@ -167,4 +167,97 @@ pub fn loop_over_roots(N: u32, n: usize,
              writeln!(file_output, "{}; {:?}", NN, exponents).expect("output failure");
          }
     }
+}
+
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
+pub struct Output {
+    pub level: u32,
+    pub exponents: Vec<u32>
+}
+
+
+impl Output {
+    pub fn new(input: String) -> Result<Self, Box<dyn std::error::Error>> {
+
+        println!("{}", "Hey");
+        // Split by semicolon
+        let parts: Vec<&str> = input.trim().split(';').collect();
+        
+        // Parse level
+        let level: u32 = parts[0]
+            .trim()
+            .parse()?;
+        
+        // Parse exponents
+        let exponents_str: &str = parts[1]
+            .trim()
+            .strip_prefix('[')
+            .and_then(|s| s.strip_suffix(']'))
+            .ok_or("Invalid array format: missing brackets")?;
+
+        // Some explanation for the code above. `strip_prefix` returns an
+        // option, not an `str`. So we either have to take the object in the
+        // option, and do the same, or use the built-in Option method
+        // `and_then` (NOT `and`!!!), which pipes all of that for you. Once
+        // that's done, we have to get the result; this is where `ok_or` comes
+        // in. This `Option` method `ok_or` comes in, as it transforms the
+        // `Option` to a `Result`, from which we can get the value we want, if
+        // it exists, and if it doesn't, we have an error. The question mark
+        // `?` at the end tries to unwrap the value and put it in
+        // `array_content`. This is not actually needed, but we put a type
+        // annotation to help the reader.
+
+        // Also, since we have all kinds of options and results, this means the
+        // return type of the method must be `Option` or `Result` (cargo will
+        // tell that to you anyway). I'm not sure how the errors and their
+        // types work, but it seems since we have different error types
+        // (parsing integers and stripping str), so the dyn. box. seems to be
+        // the most versatile:
+        // https://medium.com/@TechSavvyScribe/rust-box-dyn-error-flexible-error-handling-made-easy-245a8e8d1aea
+        
+        let exponents: Vec<u32> = exponents_str
+            .split(',')
+            .map(|s| s.trim().parse::<u32>().unwrap())
+            .collect();
+
+        // And some explanation too. The `parse` returns a `Result`, we just
+        // `unwrap` the result. While this is easy to write, it has
+        // disadvantages. Indeed, if the parsing fails, with `unwrap`, Rust
+        // will simply panick. The use of `unwrap` is "generally discouraged"
+        // in the Rust documentation. The following is possible too, but very
+        // verbose:
+        //     let exponents = exponents_str
+        //         .split(',')
+        //         .map(|s| s.trim().parse::<u32>())
+        //         .collect::<Result<Vec<_>, _>>()
+        //         .expect("Could not parse exponents string");
+        // In this snippet, right after the map, the object has (trimmed) type:
+        //      Map<core::str::iter::Split<char>, Output>
+        // Eew.
+        
+        Ok(Self {
+            level: level,
+            exponents: exponents
+        })
+    }
+}
+
+pub fn sort_output_file(file_output: &File, mut file_output_sorted: &File) {
+
+    // Get the outputs:
+    let mut outputs: Vec<Output> = BufReader::new(file_output)
+        .lines()
+        .map(|x| Output::new(x.unwrap()).unwrap())
+        .collect();
+
+    // Sort the outputs:
+    outputs.sort();
+    
+    // Write the sorted outputs:
+    for output in outputs {
+        let NN = output.level;
+        let exponents = output.exponents;
+        writeln!(file_output_sorted, "{}; {:?}", NN, exponents).expect("output failure");
+    }
+
 }
