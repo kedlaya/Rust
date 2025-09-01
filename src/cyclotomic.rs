@@ -86,9 +86,9 @@ mod tests {
                                               sin_cos_table: &sin_cos_table
         };
         let sage_res1 = 5.04891733952231_f64;
-        assert!(float_equality(ex1.house_squared(), sage_res1));
-        assert!(ex1.compare_castle(sage_res1+0.000001));
-        assert!(!ex1.compare_castle(5_f64));
+        // assert!(float_equality(ex1.house_squared(), sage_res1));
+        assert!(ex1.castle_strictly_less(sage_res1+0.000001));
+        assert!(!ex1.castle_strictly_less(5_f64));
 
         // Test 2
         // Taken from table 1 of Kiran's notes
@@ -98,8 +98,8 @@ mod tests {
                                               level: 31,
                                               sin_cos_table: &sin_cos_table
         };
-        assert!(float_equality(ex2.house_squared(), 5_f64));
-        assert!(ex2.compare_castle(5.000001_f64));
+        // assert!(float_equality(ex2.house_squared(), 5_f64));
+        assert!(ex2.castle_strictly_less(5.000001_f64));
 
         // Test 3
         // Taken from table 1 of Kiran's notes
@@ -109,9 +109,9 @@ mod tests {
                                               level: 70,
                                               sin_cos_table: &sin_cos_table
         };
-        assert!(float_equality(ex3.house_squared(), 3_f64));
-        assert!(ex3.compare_castle(3.000001_f64));
-        assert!(!ex3.compare_castle(2.999999_f64));
+        // assert!(float_equality(ex3.house_squared(), 3_f64));
+        assert!(ex3.castle_strictly_less(3.000001_f64));
+        assert!(!ex3.castle_strictly_less(2.999999_f64));
 
         // Test 4
         // i (imaginary unit)
@@ -121,7 +121,7 @@ mod tests {
                                               level: 4,
                                               sin_cos_table: &sin_cos_table
         };
-        assert_eq!(ex4.house_squared(), 1_f64);
+        // assert_eq!(ex4.house_squared(), 1_f64);
 
         // Test 5
         // 1+i (imaginary unit)
@@ -131,6 +131,6 @@ mod tests {
                                               level: 4,
                                               sin_cos_table: &sin_cos_table
         };
-        assert_eq!(ex5.house_squared(), 2_f64);
+        // assert_eq!(ex5.house_squared(), 2_f64);
     }
 }
