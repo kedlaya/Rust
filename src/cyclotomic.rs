@@ -47,27 +47,9 @@ impl CyclotomicInteger<'_> {
             })
     }
 
-    /// Return the square of the house of the input.
-    pub fn house_squared(&self) -> f64 {
-
-        // TODO: It would be more idiomatic to check for emptyness of the
-        // iterator rather than return 0. The return type would probably be
-        // something along the lines of Option(f64). Same for the next
-        // method.
-
-        let mut max_abs_squared = 0_f64;
-        for abs_squared in self.conjugates_abs_squared() {
-            if abs_squared > max_abs_squared {
-                max_abs_squared = abs_squared;
-            }
-        }
-        max_abs_squared
-    }
-
-    /// Check whether square of the house of the input is bounded
-    /// above by the cutoff. This is more efficient than computing
-    /// the house first.
-    pub fn compare_house_squared(&self, cutoff: f64) -> bool {
+    /// Check whether castle is bounded above by the cutoff. This is more efficient than
+    /// computing the house first.
+    pub fn castle_strictly_less(&self, cutoff: f64) -> bool {
 
         !self.conjugates_abs_squared().any(|x| x >= cutoff)
     }
@@ -105,8 +87,8 @@ mod tests {
         };
         let sage_res1 = 5.04891733952231_f64;
         assert!(float_equality(ex1.house_squared(), sage_res1));
-        assert!(ex1.compare_house_squared(sage_res1+0.000001));
-        assert!(!ex1.compare_house_squared(5_f64));
+        assert!(ex1.compare_castle(sage_res1+0.000001));
+        assert!(!ex1.compare_castle(5_f64));
 
         // Test 2
         // Taken from table 1 of Kiran's notes
@@ -117,7 +99,7 @@ mod tests {
                                               sin_cos_table: &sin_cos_table
         };
         assert!(float_equality(ex2.house_squared(), 5_f64));
-        assert!(ex2.compare_house_squared(5.000001_f64));
+        assert!(ex2.compare_castle(5.000001_f64));
 
         // Test 3
         // Taken from table 1 of Kiran's notes
@@ -128,8 +110,8 @@ mod tests {
                                               sin_cos_table: &sin_cos_table
         };
         assert!(float_equality(ex3.house_squared(), 3_f64));
-        assert!(ex3.compare_house_squared(3.000001_f64));
-        assert!(!ex3.compare_house_squared(2.999999_f64));
+        assert!(ex3.compare_castle(3.000001_f64));
+        assert!(!ex3.compare_castle(2.999999_f64));
 
         // Test 4
         // i (imaginary unit)

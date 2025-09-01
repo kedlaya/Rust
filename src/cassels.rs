@@ -61,7 +61,7 @@ fn skip_cyclotomic_integer(cyclotomic_integer: &CyclotomicInteger,
     }
 
     // Filter for house squared <= 5.1.
-    if !cyclotomic_integer.compare_house_squared(5.1_f64) {
+    if !cyclotomic_integer.castle_strictly_less(5.1_f64) {
        return true;
     }
     
