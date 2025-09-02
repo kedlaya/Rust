@@ -171,10 +171,10 @@ pub fn loop_over_roots(N: u32, n: usize,
         }
     }
     
-    println!("{}", "All cyclotomic integers collected")
-    println!("{}", "Sorting them now...")
+    println!("All cyclotomic integers collected");
+    println!("Sorting them now...");
     outputs.sort();
-    println!("{}", "Sorted!")
+    println!("Sorted!");
     for output in outputs {
         let NN = output.level;
         let exponents = output.exponents;
