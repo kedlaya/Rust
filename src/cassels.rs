@@ -168,11 +168,13 @@ pub fn loop_over_roots(N: u32, n: usize,
             println!("{:?}", exponents);
             let output = Output { level: NN, exponents };      
             outputs.push(output);
-            // writeln!(file_output, "{}; {:?}", NN, exponents).expect("output failure");
         }
     }
-
+    
+    println!("{}", "All cyclotomic integers collected")
+    println!("{}", "Sorting them now...")
     outputs.sort();
+    println!("{}", "Sorted!")
     for output in outputs {
         let NN = output.level;
         let exponents = output.exponents;
