@@ -4,8 +4,9 @@ mod cassels;
 use cassels::loop_over_roots;
 
 use std::fs::File;
+use std::io::Result;
 
-fn main() -> std::io::Result<()> {
+fn main() -> Result<()> {
     let file_tables = File::create("tables.txt")?;
     let file_output = File::create("output.txt")?;
     let inputs = [(19,              9),

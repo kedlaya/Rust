@@ -129,6 +129,8 @@ pub fn loop_over_roots(N: u32, n: usize,
     }
     let sin_cos_table_arc = Arc::new(sin_cos_table);
 
+    let mut outputs: Vec<Output> = vec![];
+
     // Loop over proper divisors j_2 of NN.
     for j2 in (1..NN).filter(|x| NN % x == 0) {
         // Loop over tuples [j_3, ..., j_*] with 0 <= j_3 <= ... <= j_len < NN,
@@ -158,13 +160,31 @@ pub fn loop_over_roots(N: u32, n: usize,
                 }
                 println!("Checked cases with n = {}, j_2 = {}, j_3 = {}", NN, j2, j3);
               });
-          }
+        }
 
-         // Record the level and exponents from all spawned threads
-         drop(tx);
-         for exponents in rx {
-             println!("{:?}", exponents);
-             writeln!(file_output, "{}; {:?}", NN, exponents).expect("output failure");
-         }
+        // Record the level and exponents from all spawned threads
+        drop(tx);
+        for exponents in rx {
+            println!("{:?}", exponents);
+            let output = Output { level: NN, exponents };      
+            outputs.push(output);
+        }
     }
+    
+    println!("All cyclotomic integers collected");
+    println!("Sorting them now...");
+    outputs.sort();
+    println!("Sorted!");
+    for output in outputs {
+        let NN = output.level;
+        let exponents = output.exponents;
+        writeln!(file_output, "{}; {:?}", NN, exponents).expect("output failure");
+    }
+
+}
+
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
+pub struct Output {
+    pub level: u32,
+    pub exponents: Vec<u32>
 }
